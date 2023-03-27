@@ -1,0 +1,90 @@
+body {
+  font-family: sans-serif;
+  border: 0;
+  margin: 0;  
+  /* Margin bottom by footer height */
+  margin-bottom: 30px;
+}
+header {
+  background-color: black;
+  color: white;
+  text-align: center;
+  width: 100%;
+  padding: 5px;
+  margin: 0;
+  border: 0;
+}
+h1 {
+  font-size: 36px;
+  padding: 8px;
+}
+nav {
+  background-color: #eeeeee;
+  width: auto;
+  text-align: center;
+  padding: 10px;
+  margin: 0 auto; /* this will center the page */
+  width: 80%;
+}
+section {
+  padding: 10px;
+  margin: 0 auto; /* this will center the page */
+  width: 80%;
+}
+footer {
+  background-color: black;
+  color: white;
+  clear: both;
+  text-align: center;
+  float: left;
+  padding: 5px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
+p {
+  width: 100%;
+}
+#container {
+ min-height: 100%;
+ position: relative;
+ margin: 0;
+ border-top: 0;
+}
+.blue {
+  color: #0080FF;
+}
+.dblue {
+  color: #005E8A;
+}
+.one{
+  background: url(Images-New/card_rot.jpg) center center no-repeat;
+}
+.submitbutton { 
+  background: #008B00; 
+  border: solid 1px #000000; 
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 21px;
+}
+.submitbutton:hover {
+  background: white;
+  color: #76448A;
+}
+.nlead {
+  font-size: 21px;
+  line-height: 1.6;
+}
+.quest {
+  font-size: 14px;
+  font-weight: bold;
+}
+.bone {
+  height: 2px;
+  border: none;
+  color: #08B;
+  background-color: #08B;
+}
+.flag {
+  padding: 4px;
+}
