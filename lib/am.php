@@ -44,10 +44,8 @@
  *  PatternURLs()        fetch pattern URLs
  *  PatternImages()      fetch pattern image paths
  *  Mode()               DESKTOP or MOBILE
- *
- * $Id: am.php,v 1.9 2021/10/05 21:00:03 rose Exp $
  */
- 
+
 const MODE_THRESHOLD = 1000;
 const DESKTOP = 1;
 const MOBILE = 2;
