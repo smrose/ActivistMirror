@@ -1,9 +1,9 @@
 body {
-  font-family: sans-serif;
-  border: 0;
-  margin: 0;  
-  /* Margin bottom by footer height */
-  margin-bottom: 30px;
+    font-family: sans-serif;
+    border: 0;
+    margin: 0;  
+    /* Margin bottom by footer height */
+    margin-bottom: 30px;
 }
 header {
   background-color: black;
@@ -57,34 +57,94 @@ p {
 .dblue {
   color: #005E8A;
 }
-.one{
-  background: url(Images-New/card_rot.jpg) center center no-repeat;
+.one {
+    background: url(Images-New/card_rot.jpg) center center no-repeat;
 }
 .submitbutton { 
-  background: #008B00; 
-  border: solid 1px #000000; 
-  color: #ffffff;
-  border-radius: 8px;
-  font-size: 21px;
+    background: #008B00; 
+    border: solid 1px #000000; 
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 21px;
 }
 .submitbutton:hover {
-  background: white;
-  color: #76448A;
+    background: white;
+    color: #76448A;
 }
 .nlead {
   font-size: 21px;
   line-height: 1.6;
 }
 .quest {
-  font-size: 14px;
-  font-weight: bold;
+    font-size: 14px;
+    font-weight: bold;
 }
 .bone {
-  height: 2px;
-  border: none;
-  color: #08B;
-  background-color: #08B;
+    height: 2px;
+    border: none;
+    color: #08B;
+    background-color: #08B;
 }
 .flag {
-  padding: 4px;
+    padding: 4px;
+}
+.cronut {
+    display: grid;
+    grid-template-columns: repeat(2, 50%);
+}
+.cronut div {
+    margin: .2em;
+}
+.challah {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    width: max-content;
+    border: 2px solid #666;
+    background-color: #eee;
+    margin-left: 1em;
+}
+.challah div {
+    padding: .2em;
+}
+.chead {
+    text-align: right;
+    font-weight: bold;
+}
+.csub {
+    text-align: center;
+    grid-column: span 2;
+}
+.mute {
+    border: 1px solid black;
+    padding: .1em;
+    background-color: #eee;
+}
+.sub {
+    text-align: center;
+    grid-column: span 2;
+}
+.alert {
+    font-weight: bold;
+    font-style: oblique;
+    color: #666;
+}
+.tform {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    width: max-content;
+    border: 2px solid #666;
+    background-color: #eee;
+    margin-left: 1em;
+}
+.tform div {
+    padding: .2em;
+    border: 1px solid #ccc;
+}
+.thead {
+    text-align: center;
+    font-weight: bold;
+}
+.tforms {
+    text-align: center;
+    grid-column: span 4;
 }
