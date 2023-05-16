@@ -6,8 +6,6 @@
  * CONCEPT
  *
  *  Activist Mirror application.
- *
- * $Id: result.php,v 1.8 2021/10/05 20:59:27 rose Exp $
  */
 
 include "lib/am.php";
