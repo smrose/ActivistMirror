@@ -65,14 +65,14 @@
  *  Authenticated users are first offered a choice of destination languages
  *  which they are authorized to support and which type of strings they wish
  *  to translate. All the strings of that type in the source language - 
- *  usually English - are presented next to a textarea in which the
- *  corresponding string in the destination language can be edited or entered.
- *  Those entries and/or edits are then used to generate INSERT and/or UPDATE
- *  statements.
+ *  usually US English - are presented next to a textarea in which the
+ *  corresponding string in the destination language - never US English -
+ *  can be edited or entered. Those entries and/or edits are then used to
+ *  generate INSERT and/or UPDATE statements.
  *
  *  Superusers are authorized to assign users to roles as translators for
  *  supported languages and to edit the list of supported languages.
- *
+ *  They can also enter translations.
  */
 
 
@@ -596,6 +596,8 @@ function Translators() {
     $select = "<select name=\"$sname\" multiple>\n";
 
     foreach($languages as $language) {
+      if($language['code'] == 'en')
+        continue;
       if(in_array($language['code'], $tlanguages))
         $selected = ' selected';
       else
