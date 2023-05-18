@@ -344,6 +344,7 @@ function Translate($opts) {
   
   print "<div class=\"sub\">
  <input type=\"submit\" name=\"submit\" value=\"Absorb\">
+ <input type=\"submit\" name=\"submit\" value=\"Absorb and Continue\">
  <input type=\"submit\" name=\"submit\" value=\"Cancel\">
 </div>
 </form>
@@ -826,6 +827,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
        'itemtype' => $itemtype,
        'destination' => $destination
       ]);
+      if($_POST['submit'] == 'Absorb and Continue') {
+        $source = $_POST['source'];
+        Translate([
+         'itemtype' => $itemtype,
+         'source' => $source,
+         'destination' => $destination
+        ]);
+	$rv = 1; # suppress generate other forms
+      }
     
     } else {
 
