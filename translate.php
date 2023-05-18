@@ -157,25 +157,39 @@ function ChooseLanguages($langs) {
 
   # Loop on languages.
 
+  $defaultDest = null;
+  if(isset($_POST)) {
+    if(isset($_POST['source']))
+      $defaultSource = $_POST['source'];
+    else
+      $defaultSource = 'en';
+    if(isset($_POST['destination']))
+      $defaultDest = $_POST['destination'];
+    if(isset($_POST['itemtype']))
+      $defaultItem = $_POST['itemtype'];
+  }
+
   foreach($languages as $language) {
     $code = $language['code'];
     $description = $language['description'];
     $able = '';
-    
-    if($code == 'en') {
-      $source .= " <option value=\"${language['code']}\" selected>${language['description']}</option>\n";
-    } else {
-      $source .= " <option value=\"${language['code']}\">${language['description']}</option>\n";
-      if(!$super) {
-        if(!in_array($code, $langs))
-	  $able = ' disabled';
-      }
-      $destination .= " <option value=\"${language['code']}\"$able>${language['description']}</option>\n";
+
+    $selected = ($code == $defaultSource) ? ' selected' : '';
+    $source .= " <option value=\"${language['code']}\"$selected>${language['description']}</option>\n";
+
+    if($code != 'en') {
+      $selected = ($code == $defaultDest) ? ' selected' : '';
+      $able = (!$super && !in_array($code, $langs)) ? ' disabled' : '';
+      $destination .= " <option value=\"${language['code']}\"$able$selected>${language['description']}</option>\n";
     }
   } // end loop on languages
 
-  foreach($itemtypes as $it)
-    $itemtype .= " <option value=\"${it[0]}\">${it[1]}</option>\n";
+  # Loop on itemtypes.
+
+  foreach($itemtypes as $it) {
+    $selected = ($it[0] == $defaultItem) ? ' selected' : '';
+    $itemtype .= " <option value=\"${it[0]}\"$selected>${it[1]}</option>\n";
+  }
 
   $source .= "</select>\n";
   $destination .= "</select>\n";
@@ -301,6 +315,7 @@ function Translate($opts) {
   print "<h2>Translating <em>$itemtype</em> elements from <em>${sname['description']}</em> to <em>${dname['description']}</em></h2>
   
 <form method=\"POST\" class=\"cronut\">
+<input type=\"hidden\" name=\"source\" value=\"${opts['source']}\">
 <input type=\"hidden\" name=\"destination\" value=\"${opts['destination']}\">
 <input type=\"hidden\" name=\"itemtype\" value=\"${opts['itemtype']}\">
 <input type=\"hidden\" name=\"state\" value=\"absorb\">
@@ -811,7 +826,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
        'itemtype' => $itemtype,
        'destination' => $destination
       ]);
-      ChooseLanguages($languages);
     
     } else {
 
