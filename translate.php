@@ -284,9 +284,7 @@ function Translate($opts) {
   // Get the languages.name values into $sname and $dname.
 
   $sname = GetLanguages($opts['source']);
-  $sname = $sname[0][1];
   $dname = GetLanguages($opts['destination']);
-  $dname = $dname[0][1];
 
   /* Fetch all the locals that match the source language and itemtype.
    * [localstring, local_id, object_id] */
@@ -300,7 +298,7 @@ function Translate($opts) {
   foreach($destinations as $destination)
     $dbyobjid[$destination[2]] = $destination;
 
-  print "<h2>Translating '$itemtype' elements from $sname to $dname</h2>
+  print "<h2>Translating <em>$itemtype</em> elements from <em>${sname['description']}</em> to <em>${dname['description']}</em></h2>
   
 <form method=\"POST\" class=\"cronut\">
 <input type=\"hidden\" name=\"destination\" value=\"${opts['destination']}\">
