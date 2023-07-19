@@ -78,13 +78,16 @@
 
 /* ItemTypes()
  *
- *  Return a list of all the itemtypes.
+ *  Return a list of all the itemtypes for which there is at least one value
+ *  in the "locals" table.
  */
 
 function ItemTypes($itemtype_id = null) {
   global $con;
 
-  $sql = 'SELECT * FROM itemtypes';
+  $sql = 'SELECT *, count(*) FROM itemtypes i
+ JOIN locals l ON i.itemtype_id = l.itemtype
+ GROUP BY itemtype_id';
   if(isset($itemtype_id))
     $sql .= ' WHERE itemtype_id = ?';
   $sth = $con->prepare($sql);
