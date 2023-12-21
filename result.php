@@ -28,7 +28,8 @@ if (isset($_GET["language"])) {     // forgotten language var
   $language = "en"; 
 }
 
-$title = LocalString($language, MESSAGES, TITLE);
+$title = LocalString($language, MESSAGES, TITLE) .
+  (isset($_COOKIE['dev']) ? ' (DEV MODE)' : '');
 
 // increment or initialize page number (and hence question and answers)
 
@@ -100,7 +101,7 @@ function PatternLink(pname, psppath, slot, imgpath) {
 /* Create the session record. Note that the timestamp alone doesn't define 
  * the session - just the user_id — which can have multiple "sessions". */
 
-$session_id = RecordSession($uid, $language);
+$session_id = RecordSession($uid, $language, Dev());
 
 // Save the answers for this user session to the 'responses' table.
 

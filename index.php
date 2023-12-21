@@ -1,10 +1,3 @@
-<html>
-<head>
- <meta charset="utf-8">
- <meta http-equiv="X-UA-Compatible" content="IE=edge">
- <meta name="viewport" content="width=device-width, initial-scale=1">
- <title>What kind of activist are you? The Activist Mirror knows!</title>
- <link rel="stylesheet" href="css/surveyStyle.css">
 <?php
 
 include "lib/am.php";
@@ -37,13 +30,22 @@ $olangs .= "</div>\n";
 // Get the application name from the database.
 
 $title = LocalString($language, MESSAGES, TITLE);
+if(isset($_COOKIE['dev'])) {
+  $title .= ' (DEV MODE)';
+}		  
 $intro = LocalString($language, MESSAGES, INTRO);
 $submitLabel = LocalString($language, MESSAGES, SUBMITLABEL);
 $instructions = '<p class="nlead">' . implode("</p>\n<p class=\"nlead\">", explode("\n", LocalString($language, MESSAGES, INSTRUCTIONS))) . "</p>\n";
 
 $uid = time();
 ?>
-
+<html>
+<head>
+ <meta charset="utf-8">
+ <meta http-equiv="X-UA-Compatible" content="IE=edge">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <title><?=$title?></title>
+ <link rel="stylesheet" href="css/surveyStyle.css">
 </head>
 
 <body>

@@ -44,6 +44,7 @@
  *  PatternURLs()        fetch pattern URLs
  *  PatternImages()      fetch pattern image paths
  *  Mode()               DESKTOP or MOBILE
+ *  Dev()                returns the value of the 'dev' cookie or null if it doesn't exist
  */
 
 const MODE_THRESHOLD = 1000;
@@ -334,11 +335,11 @@ function GetFull($language) {
  *  Create a record in 'sessions' table.
  */
 
-function RecordSession($uid, $language) {
+function RecordSession($uid, $language, $dev) {
   global $con;
   
-  $sth = $con->prepare("INSERT INTO sessions(session_id, uid, language) VALUES(NULL, ?, ?)");
-  $sth->bind_param('is', $uid, $language);
+  $sth = $con->prepare("INSERT INTO sessions(session_id, uid, language, dev) VALUES(NULL, ?, ?, ?)");
+  $sth->bind_param('iss', $uid, $language, $dev);
   $sth->execute();
   $sth->close();
   
@@ -682,3 +683,17 @@ function Mode() {
   return(($screen_width >= MODE_THRESHOLD) ? DESKTOP : MOBILE);
 
 } // end Mode()
+
+
+/* Dev()
+ *
+ *  Returns the value of the 'dev' cookie or null if it doesn't exist.
+ */
+
+function Dev() {
+  if(isset($_COOKIE['dev'])) {
+    return($_COOKIE['dev']);
+  } else {
+    return(null);
+  }  
+} /* end Dev() */

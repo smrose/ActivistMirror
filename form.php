@@ -29,7 +29,8 @@ if(isset($_GET["language"])) {     // forgotten language var
   $language = "en"; 
 }
 
-$title = LocalString($language, MESSAGES, TITLE);
+$title = LocalString($language, MESSAGES, TITLE) .
+  (isset($_COOKIE['dev']) ? ' (DEV MODE)' : '');
 $next = LocalString($language, MESSAGES, NEXT);
 
 // increment or initialize page number (and hence question and answers)
