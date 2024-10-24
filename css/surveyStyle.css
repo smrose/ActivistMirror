@@ -1,150 +1,118 @@
 body {
-    font-family: sans-serif;
     border: 0;
-    margin: 0;  
-    /* Margin bottom by footer height */
-    margin-bottom: 30px;
+    margin: 0;
+    font-family: "Inria Sans", sans-serif;
+    font-weight: 700;
+    background-image: url("/publicsphereproject/ActivistMirror-devel/img/SummerWinter1.png");
 }
-header {
-  background-color: black;
-  color: white;
-  text-align: center;
-  width: 100%;
-  padding: 5px;
-  margin: 0;
-  border: 0;
+#h {
+    padding: 1.5vw;
+    backdrop-filter: blur(8px);
+    background-color: rgb(255 255 255 / 20%);
+    width: 85%;
+    margin-bottom: 2vh;
+    font-family: "Paytone One", sans-serif;
 }
-h1 {
-  font-size: 36px;
-  padding: 8px;
+#act {
+    font-size: 5.6vw;
 }
-nav {
-  background-color: #eeeeee;
-  width: auto;
-  text-align: center;
-  padding: 10px;
-  margin: 0 auto; /* this will center the page */
-  width: 80%;
+#actd {
+    font-size: 2.8vw;
 }
-section {
-  padding: 10px;
-  margin: 0 auto; /* this will center the page */
-  width: 80%;
-}
-footer {
-  background-color: black;
-  color: white;
-  clear: both;
-  text-align: center;
-  float: left;
-  padding: 5px;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-}
-p {
-  width: 100%;
-}
-#container {
- min-height: 100%;
- position: relative;
- margin: 0;
- border-top: 0;
-}
-.blue {
-  color: #0080FF;
-}
-.dblue {
-  color: #005E8A;
-}
-.one {
-    background: url(Images-New/card_rot.jpg) center center no-repeat;
-}
-.submitbutton { 
-    background: #008B00; 
-    border: solid 1px #000000; 
-    color: #ffffff;
-    border-radius: 8px;
-    font-size: 21px;
-}
-.submitbutton:hover {
-    background: white;
-    color: #76448A;
-}
-.nlead {
-  font-size: 21px;
-  line-height: 1.6;
-}
-.quest {
-    font-size: 14px;
-    font-weight: bold;
-}
-.bone {
-    height: 2px;
-    border: none;
-    color: #08B;
-    background-color: #08B;
-}
-.flag {
-    padding: 4px;
-}
-.cronut {
-    display: grid;
-    grid-template-columns: repeat(2, 50%);
-}
-.cronut div {
-    margin: .2em;
-}
-.challah {
+#twocol {
     display: grid;
     grid-template-columns: repeat(2, auto);
-    width: max-content;
-    border: 2px solid #666;
-    background-color: #eee;
-    margin-left: 1em;
+    grid-column-gap: 1vw;
+    padding: 1.5vw;
+    backdrop-filter: blur(8px);
+    background-color: rgb(255 255 255 / 20%);
 }
-.challah div {
-    padding: .2em;
-}
-.chead {
-    text-align: right;
-    font-weight: bold;
-}
-.csub {
-    text-align: center;
+#bothcol {
     grid-column: span 2;
+    margin-bottom: 2vh;
+    font-size: 1.5vw;
 }
-.mute {
-    border: 1px solid black;
+.fh {
+    margin-bottom: 1vh;
+    margin-top: 1vh;
+}
+input, textarea {
+    background-color: #ffc;
+    border-radius: .8vh;
+}
+#loz {
+    margin-top: 3vh;
+    text-align: center;
+}
+#loz input {
+    color: white;
     padding: .1em;
-    background-color: #eee;
-}
-.sub {
-    text-align: center;
-    grid-column: span 2;
-}
-.alert {
+    background-color: #71a78c;
+    border: 1px solid #666;
+    border-radius: 15px;
+    font-size: 30pt;
     font-weight: bold;
-    font-style: oblique;
-    color: #666;
+    padding-right: 2em;
+    padding-left: 2em;
 }
-.tform {
+#brand {
+    font-family: "Archivo Black", sans-serif;
+    font-size: 5vw;
+    font-weight: 800;
+    position: fixed;
+    bottom: 1vh;
+    left: 1vh;
+    width: auto;
+    color: rgb(0,0,0,20%);
+    text-align: center;
+    z-index: -1;
+}
+.a {
+    transform: scale(-1,1);
+    display: inline-block;
+}
+#dhead {
+  padding: 2vw;
+  backdrop-filter: blur(8px);
+  background-color: rgb(255 255 255 / 20%);
+  margin-left: 15%;
+  margin-top: 4vh;
+  margin-bottom: 2vh;
+  font-family: "Paytone One", sans-serif;
+  font-size: 3vw;
+}
+#qgrid {
     display: grid;
-    grid-template-columns: repeat(4, auto);
-    width: max-content;
-    border: 2px solid #666;
-    background-color: #eee;
-    margin-left: 1em;
+    grid-template-columns: 60vw 40vw;
+    grid-column-gap: 1vw;
+    padding: 1.5vw;
 }
-.tform div {
-    padding: .2em;
-    border: 1px solid #ccc;
+#dog {
+    padding: 1vw;
+    backdrop-filter: blur(8px);
+    background-color: rgb(255 255 255 / 20%);
 }
-.thead {
+#gi {
+    object-fit: cover;
+    max-height: 100%;
+    width: 100%;
+}
+#sbc {
     text-align: center;
+}
+#sb {
+    color: white;
+    padding: .1em;
+    background-color: #71a78c;
+    border: 1px solid #666;
+    border-radius: 15px;
+    font-size: 30pt;
     font-weight: bold;
+    padding-right: 2em;
+    padding-left: 2em;
 }
-.tforms {
-    text-align: center;
-    grid-column: span 4;
+#fc {
+    margin-top: 1vw;
+    margin-left: 1em;
+    margin-bottom: 1em;
 }

@@ -31,7 +31,6 @@
  *  GetRoleImage()       retrieve role image
  *  GetRoleDescription() retrieve role description, locals
  *  GetRolePost()        retrieve role.post
- *  GetThanks()          retrieve "thanks" string
  *  GetRecommended()     retrieve "recommended" string
  *  GetFull()            retrieve "full" string
  *  RecordSession()      record a session record
@@ -44,7 +43,8 @@
  *  PatternURLs()        fetch pattern URLs
  *  PatternImages()      fetch pattern image paths
  *  Mode()               DESKTOP or MOBILE
- *  Dev()                returns the value of the 'dev' cookie or null if it doesn't exist
+ *  Dev()                value of the 'dev' cookie; NULL if it doesn't exist
+ *  Verbiage()           fetch a row from the verbiage table
  */
 
 const MODE_THRESHOLD = 1000;
@@ -82,8 +82,10 @@ const PATTERN_TITLES = 16;
 const PATTERN_LINKS = 17;
 const PATTERN_DESCRIPTIONS = 18;
 const PATTERN_GRAPHICS = 19;
+const QDESCRIPTOR = 20;
+const QIMAGE = 21;
 
-// message values
+// Values of locals.object_id when itemtype is 5 (MESSAGES):
 
 const TITLE = 0;
 const REVEALS = 4;
@@ -96,6 +98,12 @@ const SUBMITLABEL = 12;
 const INSTRUCTIONS = 13;
 const NEXT = 14;
 const UNANS = 15;
+const NOTE = 16;
+const VERBIAGE = 17;
+const REMEMBER = 18;
+const ASSUME = 19;
+const FEED = 20;
+const FEEDPH = 21;
 
 $languages = [
   'en' => [
@@ -297,17 +305,6 @@ function GetRolePost($language, $id) {
 } // end GetRolePost()
 
 
-/* GetThanks()
- *
- *  Fetch thanks string.
- */
-
-function GetThanks($language) {
-  return(LocalString($language, MESSAGES, THANKS));
-  
-} // end GetThanks()
-
-
 /* GetRecommended()
  *
  *  Get 'recommended' string.
@@ -335,11 +332,24 @@ function GetFull($language) {
  *  Create a record in 'sessions' table.
  */
 
-function RecordSession($uid, $language, $dev) {
+function RecordSession($session) {
   global $con;
-  
-  $sth = $con->prepare("INSERT INTO sessions(session_id, uid, language, dev) VALUES(NULL, ?, ?, ?)");
-  $sth->bind_param('iss', $uid, $language, $dev);
+
+  $param = [
+    'uid' => NULL,
+    'language' => NULL,
+    'group' => NULL,
+    'project' => NULL,
+    'prompt' => NULL,
+    'dev' => NULL
+  ];
+
+  foreach($session as $column => $value) {
+    $param['column'] = $value;
+  }
+  $sth = $con->prepare("INSERT INTO sessions(uid, language, `group`, project, prompt, dev) VALUES(?, ?, ?, ?, ?, ?)");
+  $sth->bind_param('isssss', $param['uid'], $param['language'], $param['group'],
+                   $param['project'], $param['prompt'], $param['dev']);
   $sth->execute();
   $sth->close();
   
@@ -697,3 +707,30 @@ function Dev() {
     return(null);
   }  
 } /* end Dev() */
+
+
+/* Verbiage()
+ *
+ *  Fetch a row from the 'verbiage' table.
+ *
+ *  $role is a value [1..4] to specify a value from roles.id.
+ *
+ *  $pattern is one of:
+ *    a value [1..22] to specify a value from pattern.id
+ *    0 to specify leading text
+ *    NULL for default text used when there is none for any matching pattern
+ */
+
+function Verbiage($role, $pattern = NULL) {
+  global $con;
+
+  $sql = "SELECT vstring FROM verbiage WHERE role = $role";
+  if(is_null($pattern))
+    $sql .= ' AND pattern IS NULL';
+  else
+    $sql .= " AND pattern = $pattern";
+  $result = $con->execute_query($sql);
+  $v = $result->fetch_row();
+  return(isset($v) ? $v[0] : NULL);
+
+} /* end Verbiage() */

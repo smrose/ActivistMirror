@@ -5,7 +5,8 @@
  *
  * CONCEPT
  *
- *  Activist Mirror application.
+ *  Activist Mirror application. This page presents one of the questions
+ *  and solicits an answer.
  *
  */
 
@@ -29,10 +30,6 @@ if(isset($_GET["language"])) {     // forgotten language var
   $language = "en"; 
 }
 
-$title = LocalString($language, MESSAGES, TITLE) .
-  (isset($_COOKIE['dev']) ? ' (DEV MODE)' : '');
-$next = LocalString($language, MESSAGES, NEXT);
-
 // increment or initialize page number (and hence question and answers)
 
 if (isset($_POST["page"])) {
@@ -42,116 +39,89 @@ if (isset($_POST["page"])) {
   $page = 1;
 }
 
-// SelectedQ[] contains the user input, if any, to the eight questions.
+// Get the data to compose this page.
 
-$SelectedQ = array();
-$SelectedQ[] = $q1 = isset($_POST['q1']) ? $_POST['q1'] : NULL;
-$SelectedQ[] = $q2 = isset($_POST['q2']) ? $_POST['q2'] : NULL;
-$SelectedQ[] = $q3 = isset($_POST['q3']) ? $_POST['q3'] : NULL;
-$SelectedQ[] = $q4 = isset($_POST['q4']) ? $_POST['q4'] : NULL;
-$SelectedQ[] = $q5 = isset($_POST['q5']) ? $_POST['q5'] : NULL;
-$SelectedQ[] = $q6 = isset($_POST['q6']) ? $_POST['q6'] : NULL;
-$SelectedQ[] = $q7 = isset($_POST['q7']) ? $_POST['q7'] : NULL;
-$SelectedQ[] = $q8 = isset($_POST['q8']) ? $_POST['q8'] : NULL;
-
-Debug("\$SelectedQ[] = " . print_r($SelectedQ, TRUE), 3);
+$action = ($page < 8) ? 'form.php' : 'result.php';
+$question = GetQuestion($language, $page);
+$answers = GetAnswers($language, $page);
+$next = LocalString($language, MESSAGES, NEXT);
+$qimage = LocalString(NULL, QIMAGE, $page);
 
 // The (poorly-named) $uid is actually the value of time() when the
 // user first starts the application.
 
 $uid = isset($_POST['uid']) ? $_POST["uid"] : time();
 
-if (isset($_POST["screen_width"])) {
-  $screen_width = $_POST["screen_width"];
-}
-if (isset($_POST["screen_height"])) {
-  $screen_height = $_POST["screen_height"];
-}
+$qdescriptor = LocalString($language, QDESCRIPTOR, $page);
 
 // We are presenting a form with a multiple-choice question.
 
 ?>
 <html>
 <head>
- <meta http-equiv="X-UA-Compatible" content="IE=edge">
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <meta charset="utf-8">
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Paytone+One&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Paytone+One&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
  <title>Playing the Activist Mirror Game</title>
  <link rel="stylesheet" href="css/surveyStyle.css">
+ <style>
+    body {
+	font-weight: 400;
+	font-size: 1.8vw;
+    }
+    input[type="radio"] {
+        margin-top: -1px;
+        vertical-align: middle;
+    }
+ </style>
 </head>
 
 <body>
-<div id="container">
 
-<header>
-<h1><?=$title?></h1>
-</header>
+<div id="dhead">
+ <?=$qdescriptor?>
+</div>
 
-<p style="display: none">language = <?= $language ?>, uid = <?= $uid ?>, screen width: <?= $screen_width ?>, screen height: <?= $screen_height ?></p>
-
-<section>
-
-<img src="img/activist-images-band.jpg" style="width: 95%;" >
-
-<!--Questions-->
+<div id="qgrid">
+  <div id="dog">
+   <?=$question?>
+   <form method="POST" action="<?=$action?>">
+     <div id="fc">
 <?php
 
-$action = ($page < 8) ? 'form.php' : 'result.php';
-
-echo "<p><form name=\"answer\" action=\"$action\" method=\"post\">";
-
-// Retrieve and display the question for this page and language.
-
-$question = GetQuestion($language, $page);
-
-echo "<p class=\"nlead\">$question</p>\n";   // prints the question
-
-// presenting possible (5) answers for each question [below]
-// Need to increment for each of the 8 questions (use $page)
-
-$answers = GetAnswers($language, $page);
 $answervar = "q" . $page;
 
 $i = 1;
 foreach($answers as $answer) {
-  echo "<p class=\"quest\"><input type=\"radio\" id=\"$i\" name=\"$answervar\" value=\"$i\"><label for=\"$i\">&nbsp;$answer</label>";
+  echo "<input type=\"radio\" id=\"$i\" name=\"$answervar\" value=\"$i\"><label for=\"$i\">&nbsp;$answer</label><br>\n";
   $i++;
 } // end loop on answers
 
-echo "<input type=\"hidden\" name=\"page\" value=\"$page\">";
-echo "<input type=\"hidden\" name=\"language\" value=\"$language\">";
-echo "<input type=\"hidden\" name=\"uid\" value=\"$uid\">";
-echo "<input type=\"hidden\" name=\"screen_width\" value=\"$screen_width\">";
-echo "<input type=\"hidden\" name=\"screen_height\" value=\"$screen_height\">";
+for($pn = 1; $pn < $page; $pn++)
+  echo "<input type=\"hidden\" name=\"q$pn\" value=\"{$_POST["q$pn"]}\">\n";
 
-if ($page != 1) { echo "<input type=\"hidden\" name=\"q1\" value=\"$q1\">"; }
-if ($page != 2) { echo "<input type=\"hidden\" name=\"q2\" value=\"$q2\">"; }
-if ($page != 3) { echo "<input type=\"hidden\" name=\"q3\" value=\"$q3\">"; }
-if ($page != 4) { echo "<input type=\"hidden\" name=\"q4\" value=\"$q4\">"; }
-if ($page != 5) { echo "<input type=\"hidden\" name=\"q5\" value=\"$q5\">"; }
-if ($page != 6) { echo "<input type=\"hidden\" name=\"q6\" value=\"$q6\">"; }
-if ($page != 7) { echo "<input type=\"hidden\" name=\"q7\" value=\"$q7\">"; }
-if ($page != 8) { echo "<input type=\"hidden\" name=\"q8\" value=\"$q8\">"; }
 ?>
+      <input type="hidden" name="group">
+      <input type="hidden" name="project">
+      <input type="hidden" name="prompt">
+      <input type="hidden" name="page" value="<?=$page?>">
+      <input type="hidden" name="language" value="<?=$language?>">
+      <input type="hidden" name="uid" value="<?=$uid?>">
+      </div>
+      <div id="sbc">
+	<input type="submit" name="submit" value="<?=$next?>" id="sb">
+      </div>
+    </form>
+  </div>
+  <div>
+   <img src="/publicsphereproject/ActivistMirror-devel/img/<?=$qimage?>" id="gi">
+  </div>
 
-<p>
-<input type="submit" name="submit" value="<?=$next?>" class="btn btn-default">
-
-</div>
-</form>
-
-<hr>
-
-</div>
-
-</section>
-
-<br>
-
-
-<footer>
-The Public Sphere Project
-</footer>
+<div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
 
 </body>
 </html>
