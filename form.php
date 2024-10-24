@@ -10,7 +10,7 @@
  *
  */
 
-include "lib/am.php";
+include "am.php";
 
 // Main program follows.
 
@@ -67,7 +67,7 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
  <link href="https://fonts.googleapis.com/css2?family=Paytone+One&display=swap" rel="stylesheet">
  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
  <title>Playing the Activist Mirror Game</title>
- <link rel="stylesheet" href="css/surveyStyle.css">
+ <link rel="stylesheet" href="surveyStyle.css">
  <style>
     body {
 	font-weight: 400;

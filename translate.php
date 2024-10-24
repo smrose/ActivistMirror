@@ -761,7 +761,7 @@ function DeleteTranslator($userid, $lcode) {
 <head>
   <meta charset="UTF-8">
   <title>Activist Mirror Translation</title>
-  <link rel="stylesheet" href="css/surveyStyle.css">
+  <link rel="stylesheet" href="surveyStyle.css">
 </head>
 
 <body>
@@ -786,8 +786,8 @@ function DeleteTranslator($userid, $lcode) {
 set_include_path(get_include_path() . PATH_SEPARATOR . '../ps/project');
 require 'vendor/autoload.php';
 
-require "lib/am.php";
-require "lib/db.php";
+require "am.php";
+require "db.php";
 
 DataStoreConnect(); // connect to the Activist Mirror database
 AuthConnect(); // connect to the PHPAuth data

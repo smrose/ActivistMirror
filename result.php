@@ -9,7 +9,7 @@
  *  and stores user input.
  */
 
-include "lib/am.php";
+include "am.php";
 
 // Main program follows.
 
@@ -130,7 +130,7 @@ str_replace('%%ROLENAME%%', $role, $Remember);
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <meta charset="utf-8">
   <title>Playing the Activist Mirror Game</title>
-  <link rel="stylesheet" href="css/surveyStyle.css">
+  <link rel="stylesheet" href="surveyStyle.css">
   <style>
     #tcol {
 	display: grid;

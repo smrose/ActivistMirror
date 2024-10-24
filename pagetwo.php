@@ -9,7 +9,7 @@
  *  solicits optional group and project names, and a prompt.
  */
  
-include "lib/am.php";
+include "am.php";
 DataStoreConnect();
 $next = LocalString($language, MESSAGES, NEXT);
 ?>
@@ -22,7 +22,7 @@ $next = LocalString($language, MESSAGES, NEXT);
   <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Paytone+One&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Paytone+One&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/surveyStyle.css">
+  <link rel="stylesheet" href="surveyStyle.css">
 </head>
 
 <body>

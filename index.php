@@ -1,6 +1,6 @@
 <?php
 
-include "lib/am.php";
+include "am.php";
 $debug = 2;
 
 // Open connection with db
@@ -33,10 +33,10 @@ $uid = time();
  <meta http-equiv="X-UA-Compatible" content="IE=edge">
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <title><?=$title?></title>
- <link rel="stylesheet" href="css/surveyStyle.css">
+ <link rel="stylesheet" href="surveyStyle.css">
   <style type="text/css">
     body {
-	background-image: url("/publicsphereproject/ActivistMirror-devel/img/SummerWinter.png");
+	background-image: url("img/SummerWinter.png");
 	font-family: Inter, sans-serif;
     }
     h1 {

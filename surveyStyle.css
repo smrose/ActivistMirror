@@ -3,7 +3,7 @@ body {
     margin: 0;
     font-family: "Inria Sans", sans-serif;
     font-weight: 700;
-    background-image: url("/publicsphereproject/ActivistMirror-devel/img/SummerWinter1.png");
+    background-image: url("img/SummerWinter1.png");
 }
 #h {
     padding: 1.5vw;
