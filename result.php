@@ -31,8 +31,8 @@ if (isset($_GET["language"])) {     // forgotten language var
 
 // SelectedQ[] contains the user input, if any, to the eight questions.
 
-for($i = 1; $i <= 8; $i++)
-  $SelectedQ[] = isset($_POST["q$i"]) ? $_POST["q$i"] : NULL;
+for($i = 1; $i <= QCOUNT; $i++)
+  $SelectedQ[] = $_POST["q$i"] ? $_POST["q$i"] : NULL;
 
 Debug("\$SelectedQ[] = " . print_r($SelectedQ, TRUE), 3);
 
@@ -122,7 +122,7 @@ if(isset($Verbiage)) {
   $Verbiage = Verbiage($toprole);
   $Remember = LocalString($language, MESSAGES, ASSUME);
 }
-str_replace('%%ROLENAME%%', $role, $Remember);
+$Remember = str_replace('%%ROLENAME%%', $role, $Remember);
 
 ?>
 <html>

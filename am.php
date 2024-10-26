@@ -51,6 +51,7 @@ const MODE_THRESHOLD = 1000;
 const DESKTOP = 1;
 const MOBILE = 2;
 
+const QCOUNT = 8;
 const PATCOUNT = 22;
 const TOPPATS = 4;
 
@@ -417,7 +418,7 @@ function ComputeRole($session_id, $SelectedQ) {
   $sth->bind_param('ii', $page, $qval);
   $sth->bind_result($factor, $role);
 
-  for($page = 1; $page <= 8; $page++) { 
+  for($page = 1; $page <= QCOUNT; $page++) { 
     $qval = $SelectedQ[$page-1]; 
     $sth->execute();
     $res = $sth->get_result();
@@ -508,7 +509,7 @@ function ComputePatterns($SelectedQ) {
   
   // Loop on questions.
   
-  for($question = 1; $question <= 8; $question++) {
+  for($question = 1; $question <= QCOUNT; $question++) {
     $id_ans = $SelectedQ[$question-1]; // 1..5
     $x = ($question-1) * 5 + $id_ans; // pattern_weights.id_ans
     $sth->execute();
