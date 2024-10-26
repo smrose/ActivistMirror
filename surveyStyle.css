@@ -55,6 +55,15 @@ input, textarea {
     padding-right: 2em;
     padding-left: 2em;
 }
+#dev {
+    font-family: "Archivo Black", sans-serif;
+    font-size: 3vw;
+    font-weight: 800;
+    color: rgb(255 255 255 /50%);
+    position: fixed;
+    right: 1vw;
+    top: .5vh;
+}
 #brand {
     font-family: "Archivo Black", sans-serif;
     font-size: 5vw;
@@ -91,6 +100,9 @@ input, textarea {
     padding: 1vw;
     backdrop-filter: blur(8px);
     background-color: rgb(255 255 255 / 20%);
+}
+#ipan {
+    padding: 1vw;
 }
 #gi {
     object-fit: cover;

@@ -57,7 +57,8 @@ $session_id = RecordSession($session);
 
 // Save the answers for this user session to the 'responses' table.
 
-SaveResponses($language, $session_id, $SelectedQ);
+$unanswered = SaveResponses($language, $session_id, $SelectedQ);
+$unans = $unanswered ? LocalString($language, MESSAGES, UNANS) : '';
 
 // Compute the top role.
 
@@ -67,6 +68,7 @@ $role = GetRoleName($language, $toprole);
 $rimage = 'img/' . GetRoleImage($toprole);
 $description = GetRoleDescription($language, $toprole);
 $post = GetRolePost($language, $toprole);
+$generic = LocalString($language, MESSAGES, VERBIAGE);
 $thanks = LocalString($language, MESSAGES, THANKS);
 $note = LocalString($language, MESSAGES, NOTE);
 $feed = LocalString($language, MESSAGES, FEED);
@@ -114,7 +116,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 foreach($bytweak as $patno => $tweak) {
   $Verbiage = Verbiage($toprole, $patno);
   if(isset($Verbiage))
-    $break;
+    break;
 }
 if(isset($Verbiage)) {
   $Remember = LocalString($language, MESSAGES, REMEMBER);
@@ -147,9 +149,11 @@ $Remember = str_replace('%%ROLENAME%%', $role, $Remember);
         text-align: center;
     }
     #reveal {
+    	font-weight: 700;
 	font-size: 1.4vw;
     }
     #role {
+    	font-weight: 700;
 	font-size: 3vw;
 	margin-bottom: 2vh;
     }
@@ -164,6 +168,7 @@ $Remember = str_replace('%%ROLENAME%%', $role, $Remember);
 	margin-right: auto;
     }
     #patterns {
+      padding-right: 1vw;
     }
     #twotwo {
 	display: grid;
@@ -254,6 +259,8 @@ $Remember = str_replace('%%ROLENAME%%', $role, $Remember);
       </p>
     </div>
     <div id="patterns">
+      <p id="generic">
+       <?=$generic?>
       <p id="verbiage">
        <?=$Verbiage?>
       </p>
@@ -281,6 +288,7 @@ $Remember = str_replace('%%ROLENAME%%', $role, $Remember);
   </div>
 
   <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
+  <div id="dev">DEVELOPER</div>
 
   <script>
     twotwo = document.querySelector('#twotwo')
@@ -290,6 +298,11 @@ $Remember = str_replace('%%ROLENAME%%', $role, $Remember);
     }
     sub = document.querySelector('#sub')
     sub.addEventListener('click', subf)
+    dev = document.querySelector('#dev')
+<?php
+  if(!isset($session['dev']))
+   print("dev.style.display = 'none'");
+?>
   </script>
 
 </body>

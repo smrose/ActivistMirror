@@ -368,7 +368,7 @@ function RecordSession($session) {
 /* SaveResponses()
  *
  *  Save the user responses to the 'responses' table, one row per response.
- *  Display a warning if not all questions were answered.
+ *  Returns the number of unanswered questions.
  */
 
 function SaveResponses($language, $session_id, $SelectedQ) {
@@ -392,10 +392,8 @@ function SaveResponses($language, $session_id, $SelectedQ) {
     }
   } // end loop
 
-  if($unanswered > 0 && ($unans = LocalString($language, MESSAGES, UNANS))) {
-    echo "<p>$unans</p>\n";
-  }
   $sth->close();
+  return($unanswered);
   
 } // end SaveResponses()
 
