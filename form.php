@@ -11,6 +11,8 @@
  */
 
 include "am.php";
+$dev = Dev();
+$aversion = date('H:i:s d/m/Y', filectime('.git/index'));
 
 // Main program follows.
 
@@ -57,6 +59,7 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
 // We are presenting a form with a multiple-choice question.
 
 ?>
+<!DOCTYPE html>
 <html>
 <head>
  <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -81,6 +84,8 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
 </head>
 
 <body>
+
+<div id="dev" title="<?=$aversion?>">DEVELOPER</div>
 
 <div id="dhead">
  <?=$qdescriptor?>
@@ -123,5 +128,12 @@ for($pn = 1; $pn < $page; $pn++)
 
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
 
+<script>
+  dev = document.querySelector('#dev')
+<?php
+  if(!isset($dev))
+   print("dev.style.display = 'none'");
+?>
+</script>
 </body>
 </html>

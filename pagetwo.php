@@ -10,10 +10,12 @@
  */
  
 include "am.php";
+$dev = Dev();
+$aversion = date('H:i:s d/m/Y', filectime('.git/index'));
 DataStoreConnect();
 $next = LocalString($language, MESSAGES, NEXT);
 ?>
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <title>Playing the Activist Mirror</title>
@@ -26,7 +28,7 @@ $next = LocalString($language, MESSAGES, NEXT);
 </head>
 
 <body>
-
+<div id="dev" title="<?=$aversion?>">DEVELOPER</div>
 <div id="h">
  <span id="act">ACTIVIST:</span>
  <span id="actd">any person who is purposely       
@@ -90,8 +92,13 @@ $next = LocalString($language, MESSAGES, NEXT);
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
 
 <script>
-  loz = document.getElementById('loz')
-  loz.addEventListener('click', 'q')
+  loz = document.querySelector('#loz')
+  loz.addEventListener('click', q)
+  dev = document.querySelector('#dev')
+<?php
+  if(!isset($dev))
+   print("dev.style.display = 'none'");
+?>
 </script>
 
 </body>

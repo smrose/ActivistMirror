@@ -56,6 +56,7 @@ input, textarea {
     padding-left: 2em;
 }
 #dev {
+    z-index: 1;
     font-family: "Archivo Black", sans-serif;
     font-size: 3vw;
     font-weight: 800;

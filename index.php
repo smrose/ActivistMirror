@@ -2,6 +2,8 @@
 
 include "am.php";
 $debug = 2;
+$dev = Dev();
+$aversion = date('H:i:s d/m/Y', filectime('.git/index'));
 
 // Open connection with db
 
@@ -18,15 +20,13 @@ if(isset($_GET["language"])) {     // if language var passed via url
 // Get the application name from the database.
 
 $title = LocalString($language, MESSAGES, TITLE);
-if(isset($_COOKIE['dev'])) {
-  $title .= ' (DEV MODE)';
-}		  
 $intro = LocalString($language, MESSAGES, INTRO);
 $submitLabel = LocalString($language, MESSAGES, SUBMITLABEL);
 $instructions = '<p class="nlead">' . implode("</p>\n<p class=\"nlead\">", explode("\n", LocalString($language, MESSAGES, INSTRUCTIONS))) . "</p>\n";
 
 $uid = time();
 ?>
+<!DOCTYPE html>
 <html>
 <head>
  <meta charset="utf-8">
@@ -88,6 +88,8 @@ $uid = time();
 <body>
 <h1>ACTIVIST<br>MIR<span class="a">R</span>OR</h1>
 
+<div id="dev" title="<?=$aversion?>">DEVELOPER</div>
+
 <div class="blur">
  <div class="ak">It takes all kinds of people to make a better world.</div>
  <div class="wk">What kind are you?</div>
@@ -96,8 +98,13 @@ $uid = time();
   <button>BEGIN</button>
 </div>
 <script>
-  lz = document.getElementById('lz')
+  lz = document.querySelector('#lz')
   lz.addEventListener('click', pagetwo)
+  dev = document.querySelector('#dev')
+<?php
+  if(!isset($dev))
+   print("dev.style.display = 'none'");
+?>
 </script>
 </body>
 
