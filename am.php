@@ -345,9 +345,9 @@ function RecordSession($session) {
     'dev' => NULL
   ];
 
-  foreach($session as $column => $value) {
-    $param['column'] = $value;
-  }
+  foreach($session as $column => $value)
+    $param[$column] = $value;
+
   $sth = $con->prepare("INSERT INTO sessions(uid, language, `group`, project, prompt, dev) VALUES(?, ?, ?, ?, ?, ?)");
   $sth->bind_param('isssss', $param['uid'], $param['language'], $param['group'],
                    $param['project'], $param['prompt'], $param['dev']);
