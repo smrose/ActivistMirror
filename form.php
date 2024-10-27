@@ -123,7 +123,7 @@ for($pn = 1; $pn < $page; $pn++)
     </form>
   </div>
   <div id="ipan">
-   <img src="/publicsphereproject/ActivistMirror-devel/img/<?=$qimage?>" id="gi">
+   <img src="img/<?=$qimage?>" id="gi">
   </div>
 
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
