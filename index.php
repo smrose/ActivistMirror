@@ -70,6 +70,9 @@ $uid = time();
 	padding-right: 2em;
 	padding-left: 2em;
     }
+    #lz button:hover {
+        background-color: #95bda9;
+    }
     .ak {
 	font-size: 20pt;
 	font-weight: 400;

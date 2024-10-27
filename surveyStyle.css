@@ -55,6 +55,9 @@ input, textarea {
     padding-right: 2em;
     padding-left: 2em;
 }
+#loz input:hover {
+    background-color: #95bda9;
+}
 #dev {
     z-index: 1;
     font-family: "Archivo Black", sans-serif;
@@ -123,6 +126,9 @@ input, textarea {
     font-weight: bold;
     padding-right: 2em;
     padding-left: 2em;
+}
+#sb:hover {
+    background-color: #95bda9;
 }
 #fc {
     margin-top: 1vw;
