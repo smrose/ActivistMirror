@@ -1,6 +1,7 @@
 db.php
 RCS
 .vscode
+.htaccess
 util
 Makefile
 *~

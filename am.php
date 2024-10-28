@@ -194,9 +194,8 @@ function LocalString($language, $itemtype, $bottom, $top = NULL) {
     $sth->execute();
     $res = $sth->get_result();
     $values = $res->fetch_all();
-    foreach($values as $value) {
+    foreach($values as $value)
       $text[] = $value[0];
-    }
     $sth->close();
     
   } else {

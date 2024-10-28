@@ -14,7 +14,6 @@
  *  ChooseLanguages  select languages and item type
  *  ManageLanguages  add and edit supported languages
  *  ManageTranslators edit the translators
- *  AuthConnect      connect to the auth database
  *  Locals           fetch strings of this type and language
  *  Error            fail in disgrace
  *  Translate        present the form for entering strings
@@ -23,8 +22,9 @@
  *  InsertLocal      insert a row into 'locals'
  *  UpdateLocal      update a row in 'locals'
  *  DeleteLocal      delete a row from 'locals'
- *  GetUsers         return array of all PHPAuth users
+ *  GetUsers         return array of all translators
  *  Translators      present a form for assigning translators
+ *  Users            add user
  *  SetTranslators   absorb setting of translators
  *
  * NOTES
@@ -50,17 +50,24 @@
  *    description varchar(80) NOT NULL,
  *   );
  *
- *  Each authorized user/language pair is represented by a row in the
- *  'translator' table:
+ *  Each authorized user is represented by a row in the 'translator' table
+ *  which associates a username and role with their unique 'id':
  *
- *   CREATE TABLE translator (
- *    userid int NOT NULL COMMENT 'references ps.phpauth_users.id',
- *    lcode char(2) NOT NULL COMMENT 'language code'
+ *   CREATE TABLE translator(
+ *    id integer NOT NULL PRIMARY KEY,
+ *    userid varchar(16) NOT NULL,
+ *    super tinyint(1) NOT NULL DEFAULT 0
  *   );
  *
- *  The Activist Mirror, lacking an auth system of its own, borrows from
- *  the PHPAuth data used for the Pattern Sphere. Users must authenticate
- *  in that application before using this one.
+ *  Each language/translator pair is represented by a row in the
+ *  'ltrans' table, each row in which associates a translator.id
+ *  value with a language.code value.
+ *
+ *   CREATE TABLE ltrans (
+ *    tid integer NOT NULL,
+ *    lcode char(2) NOT NULL,
+ *    FOREIGN KEY(tid) REFERENCES translator(id)
+ *   );
  *
  *  Authenticated users are first offered a choice of destination languages
  *  which they are authorized to support and which type of strings they wish
@@ -86,10 +93,10 @@ function ItemTypes($itemtype_id = null) {
   global $con;
 
   $sql = 'SELECT *, count(*) FROM itemtypes i
- JOIN locals l ON i.itemtype_id = l.itemtype
- GROUP BY itemtype_id';
+ JOIN locals l ON i.itemtype_id = l.itemtype';
   if(isset($itemtype_id))
     $sql .= ' WHERE itemtype_id = ?';
+  $sql .= ' GROUP BY itemtype_id';
   $sth = $con->prepare($sql);
   if(isset($itemtype_id))
     $sth->bind_param('i', $itemtype_id);
@@ -149,7 +156,7 @@ function GetLanguages($code = null) {
 function ChooseLanguages($langs) {
   global $user;
 
-  $super = $user['role'] == 'super';
+  $super = $user['super'];
 
   $languages = GetLanguages(); // code, description
   $itemtypes = ItemTypes(); // itemtype_id, itemtype
@@ -231,25 +238,6 @@ function ManageLanguages() {
 function ManageTranslators() {
   
 } /* end ManageTranslators() */
-
-
-/* AuthConnect()
- *
- *  Connect to the database containing PHPAuth tables.
- */
-
-function AuthConnect() {
-  global $pdo;
-  if(isset($pdo))
-    return;
-  try {
-    $pdo = new PDO(DSN, USER, PW);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
-  } catch(PDOException $e) {
-    throw new PDOException($e->getMessage(), (int) $e->getCode());
-  }
-    
-} /* end AuthConnect() */
 
 
 /* Locals()
@@ -451,7 +439,9 @@ function Absorb($opts) {
 function GetTranslators($userid = null) {
   global $con;
 
-  $sql = 'SELECT userid, lcode FROM translator';
+  $sql = 'SELECT tid, lcode
+ FROM translator t
+  JOIN ltrans lt ON t.id = lt.tid';
   if(isset($userid))
     $sql .= ' WHERE userid = ?';
   $sth = $con->prepare($sql);
@@ -547,32 +537,32 @@ function DeleteLocal($opt) {
 
 /* GetUsers()
  *
- *  Return a list of all the users from the PHPAuth datastore.
+ *  Return a list of all the translators.
  */
 
 function GetUsers() {
-  global $pdo;
-
-  $sql = 'SELECT id AS uid, email, isactive, dt, fullname, username, role
- FROM phpauth_users';
-  if(isset($filter)) {
-    $conditions = '';
-    foreach($filter as $name => $value) {
-      if(strlen($conditions))
-        $conditions .= ' AND ';
-      $conditions .= "$name = $value";
-    }
-    $sql .= " WHERE $conditions";
-  }
-  $sth = $pdo->prepare($sql);
-  $sth->execute();
-  $users = [];
-  while($user = $sth->fetch(PDO::FETCH_ASSOC)) {
-    $users[$user['uid']] = $user;
-  }
-  return($users);
+  global $con;
+  
+  if($r = $con->query('SELECT * FROM translator'))
+    $translators = $r->fetch_all(MYSQLI_ASSOC);
+  return($translators);
 
 } /* end GetUsers() */
+
+
+/* GetUser()
+ *
+ *  Return a translator.
+ */
+
+function GetUser($username) {
+  global $con;
+  
+  if($r = $con->execute_query('SELECT * FROM translator WHERE userid = ?', [$username]))
+    $translator = $r->fetch_assoc();
+  return($translator);
+
+} /* end GetUser() */
 
 
 /* Translators()
@@ -594,22 +584,20 @@ function Translators() {
 
 <form method=\"POST\" action=\"${_SERVER['SCRIPT_NAME']}\" enctype=\"multipart/form-data\" class=\"tform\">
 <input type=\"hidden\" name=\"state\" value=\"st\">
-<div class=\"thead\">Name</div>
-<div class=\"thead\">Email</div>
 <div class=\"thead\">Username</div>
 <div class=\"thead\">Languages</div>
 ";
 
   # loop on users
 
-  foreach($users as $uid => $user) {
-  
-    if(array_key_exists($uid, $translators))
-      $tlanguages = $translators[$uid]; // this user is a translator
+  foreach($users as $user) {
+    $id = $user['id'];
+    if(array_key_exists($id, $translators))
+      $tlanguages = $translators[$id]; // this user is a translator
     else
       $tlanguages = []; // this user is not a translator
 
-    $sname = $uid . '[]';
+    $sname = $id . '[]';
     $select = "<select name=\"$sname\" multiple>\n";
 
     foreach($languages as $language) {
@@ -622,9 +610,7 @@ function Translators() {
       $select .= " <option value=\"${language['code']}\"$selected>${language['description']}\n";
     }
     $select .= "</select>\n";
-    print "<div>${user['fullname']}</div>
-<div>${user['email']}</div>
-<div>${user['username']}</div>
+    print "<div title=\"{$user['id']}\">{$user['userid']}</div>
 <div>$select</div>
 ";
   } // end loop on users
@@ -637,6 +623,58 @@ function Translators() {
 ";
 
 } /* end Translators() */
+
+
+/* Users()
+ *
+ *  Add a row to the translator table.
+ */
+
+function Users($userid = NULL, $super = NULL) {
+  global $con;
+
+  if(isset($userid)) {
+  
+    // Create new user.
+
+    $super = is_null($super) ? 0 : 1;
+    $sth = $con->prepare('INSERT INTO translator(userid, super) VALUES(?, ?)');
+    $sth->bind_param('si', $userid, $super);
+    try {
+      $sth->execute();
+      print "<p class=\"alert\">Added user <code>$userid</code>.</p>\n";
+    } catch(Exception $e) {
+      $error = $e->getMessage();
+      print "<p class=\"alert\">$error</p>\n";
+    }
+    
+  } else {
+
+    // Solicit new user.
+    
+    print "<h2>Add a Translator</h2>
+
+<p style=\"font-weight: bold\">Superusers create users in this form.</p>
+
+<form method=\"POST\" action=\"${_SERVER['SCRIPT_NAME']}\" enctype=\"multipart/form-data\" class=\"challah\">
+ <input type=\"hidden\" name=\"state\" value=\"u\">
+ <div class=\"tfield\">Username:</div>
+ <div>
+  <input type=\"text\" name=\"userid\">
+ </div>
+ <div class=\"tfield\">
+  Super:
+ </div>
+ <div>
+  <input type=\"checkbox\" name=\"super\" value=\"1\">
+ </div>
+ <div class=\"csub\">
+  <input type=\"submit\" name=\"submit\" value=\"Absorb\">
+ </div>
+</form>
+";
+  }
+} // end Users()
 
 
 /* SetTranslators()
@@ -706,17 +744,17 @@ function SetTranslators() {
     InsertTranslator($insert[0], $insert[1]);
     $user = $users[$insert[0]];
     $language = $languages[$insert[1]];
-    print "Added <em>${user['fullname']}</em> as a translator of <em>${language['description']}</em><br>\n";
+    print "<p class=\"alert\">Added <em>${user['userid']}</em> as a translator of <em>${language['description']}</em></p>\n";
   }
 
   foreach($deletes as $delete) {
     DeleteTranslator($delete[0], $delete[1]);
     $user = $users[$delete[0]];
     $language = $languages[$delete[1]];
-    print "Removed <em>${user['fullname']}</em> as a translator of <em>${language['description']}</em><br>\n";
+    print "<p class=\"alert\">Removed <em>${user['userid']}</em> as a translator of <em>${language['description']}</em></p>\n";
   }
   if(count($deletes) + count($inserts) == 0)
-    print "<p>No changes.</p>\n";
+    print "<p class=\"alert\">No changes.</p>\n";
 
 } /* end SetTranslators() */
 
@@ -729,7 +767,7 @@ function SetTranslators() {
 function InsertTranslator($userid, $lcode) {
   global $con;
 
-  $sql = 'INSERT INTO translator (userid, lcode) VALUES (?,?)';
+  $sql = 'INSERT INTO ltrans (tid, lcode) VALUES (?,?)';
   $sth = $con->prepare($sql);
   $sth->bind_param('is', $userid, $lcode);
   $sth->execute();
@@ -761,7 +799,97 @@ function DeleteTranslator($userid, $lcode) {
 <head>
   <meta charset="UTF-8">
   <title>Activist Mirror Translation</title>
-  <link rel="stylesheet" href="surveyStyle.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Paytone+One&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Piazzolla:ital,opsz,wght@0,8..30,100..900;1,8..30,100..900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-image: url("img/SummerWinter1.png");
+      font-family: "Inria Sans", sans-serif;
+    }
+    .challah {
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      width: max-content;
+      border: 2px solid #666;
+      background-color: rgb(240, 240, 240, 30%);
+      margin-left: 1em;
+    }
+    .challah div {
+      padding: .2em;
+    }
+    .chead {
+      text-align: right;
+      font-weight: bold;
+    }
+    .csub {
+      text-align: center;
+      grid-column: span 2;
+    }
+    .tform {
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      width: max-content;
+      border: 2px solid #666;
+      background-color: rgb(240, 240, 240, 30%);
+      margin-left: 1em;
+    }
+    .tform div {
+      padding: .2em;
+      border: 1px solid #ccc;
+    }
+    .thead {
+      text-align: center;
+      font-weight: bold;
+    }
+    .tfield {
+      text-align: right;
+      font-weight: bold;
+    }
+    .tforms {
+      text-align: center;
+      grid-column: span 2;
+    }
+    #brand {
+      font-family: "Archivo Black", sans-serif;
+      font-size: 5vw;
+      font-weight: 800;
+      position: fixed;
+      bottom: 1vh;
+      left: 1vh;
+      width: auto;
+      color: rgb(0,0,0,20%);
+      text-align: center;
+      z-index: -1;
+    }
+    .a {
+      transform: scale(-1,1);
+      display: inline-block;
+    }
+    .alert {
+      font-weight: 600;
+    }
+    .cronut {
+      display: grid;
+      grid-template-columns: repeat(2, 50%);
+      background-color: rgb(0,0,0,10%);
+      padding: .5em;
+    }
+    .cronut div {
+      margin: .2em;
+    }
+    .sub {
+      text-align: center;
+      grid-column: span 2;
+    }
+    .sub input {
+      font-weight: 600;
+      background-color: #dcc;
+      border: 2px solid tan;
+    }
+    .sub input:hover {
+      background-color: #edd;
+    }
+  </style>
 </head>
 
 <body>
@@ -773,37 +901,23 @@ function DeleteTranslator($userid, $lcode) {
 </header>
 
 <section>
-<div style="width: 95%; margin-bottom: 4em">
-  <img src="img/activist-images-band.jpg" style="width: 100%">
-<div style="margin-top: 1em; margin-bottom: 2em">
-</div>
-</div>
 
 <?php
 
 // Main program ho!
 
-set_include_path(get_include_path() . PATH_SEPARATOR . '../ps/project');
-require 'vendor/autoload.php';
-
 require "am.php";
 require "db.php";
 
 DataStoreConnect(); // connect to the Activist Mirror database
-AuthConnect(); // connect to the PHPAuth data
 
-$config = new PHPAuth\Config($pdo);
-$auth = new PHPAuth\Auth($pdo, $config);
-
-if(!$isLogged = $auth->isLogged()) {
-  print "<p>You are not authenticated but must be to use this tool. Please
-visit the <a href=\"../ps/\">Pattern Sphere</a> to authenticate.</p>\n";
-  exit;
-}
-$user = $auth->getCurrentUser(true);
+$user = GetUser($_SERVER['REMOTE_USER']);
 $languages = GetTranslators($user['id']);
 
-if(!count($languages) && $user['role'] != 'super') {
+/* Smell test: if no user is set, or there are no languages authorized for
+ * a non-superuser, stop right now. */
+
+if(!isset($user) || (!count($languages) && !$user['super'])) {
   print "<p>Cannot confirm that you are authorized to use this tool. Contact project administration.</p>\n";
   exit;
 }
@@ -837,7 +951,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
          'source' => $source,
          'destination' => $destination
         ]);
-	$rv = 1; # suppress generate other forms
+        $rv = 1; # suppress generate other forms
       }
     
     } else {
@@ -861,22 +975,27 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
     // absorbing translators
 
     SetTranslators();
-  }
+  } elseif($_POST['state'] == 'u') {
+
+    // Absorb a new user.
+      
+    Users($_POST['userid'], $_POST['super']);
+  }      
 }
 
 if(!$rv) {
   ChooseLanguages($languages);
-  if($user['role'] == 'super') // superusers assign translators
+  if($user['super']) { // superusers create and assign translators
     Translators();
+    Users();
+  }
 }
 ?>
 
 </section>
 </div>
 
-<footer>
-The Public Sphere Project
-</footer>
+<div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
 
 </body>
 </html>
