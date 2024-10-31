@@ -11,7 +11,7 @@
 
 /* RoleBar()
  *
- *  Build a UI element to allow developers to select the role and pattern
+ *  Build UI elements to allow developers to select the role and pattern
  *  set.
  */
 
@@ -97,7 +97,7 @@ $session_id = RecordSession($session);
 $unanswered = SaveResponses($language, $session_id, $SelectedQ);
 $unans = $unanswered ? LocalString($language, MESSAGES, UNANS) : '';
 $looking = LocalString($language, MESSAGES, REVEALS);
-$generic = LocalString($language, MESSAGES, VERBIAGE);
+//$generic = LocalString($language, MESSAGES, VERBIAGE);
 $thanks = LocalString($language, MESSAGES, THANKS);
 $note = LocalString($language, MESSAGES, NOTE);
 $feed = LocalString($language, MESSAGES, FEED);
@@ -385,8 +385,6 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
       </p>
     </div>
     <div id="patterns">
-      <p id="generic">
-       <?=$generic?>
       <p id="verbiage">
        <?=$Verbiage?>
       </p>

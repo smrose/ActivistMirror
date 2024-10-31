@@ -14,6 +14,7 @@ $dev = Dev();
 $aversion = date('H:i:s d/m/Y', filectime('.git/index'));
 DataStoreConnect();
 $next = LocalString($language, MESSAGES, NEXT);
+$Based = LocalString($language, MESSAGES, INSTRUCTIONS);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,13 +39,7 @@ $next = LocalString($language, MESSAGES, NEXT);
 <form method="POST" action="form.php">
 <div id="twocol">
   <div id="bothcol">
-    Based on your responses, the Activist Mirror will reflect an activist
-    role back to you and recommend four patterns from the Liberating
-    Voices pattern language. These patterns should be useful as you look
-    ahead, especially as you apply your own interests, knowledge and
-    creativity. Note that the Activist Mirror is still evolving, and, with
-    your help, it will be increasingly useful for supporting group
-    collaboration and meaningful activism.
+   <?=$Based?>
   </div>
   <div>
     <div class="fh">
