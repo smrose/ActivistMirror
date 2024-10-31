@@ -26,13 +26,7 @@
  *  LocalString()        retrieve string or strings
  *  GetQuestion()        retrieve question text
  *  GetAnswers()         retrieve answer labels
- *  GetReveals()         retrieve "reveals" string
- *  GetRoleName()        retrieve role name
- *  GetRoleImage()       retrieve role image
- *  GetRoleDescription() retrieve role description, locals
- *  GetRolePost()        retrieve role.post
  *  GetRecommended()     retrieve "recommended" string
- *  GetFull()            retrieve "full" string
  *  RecordSession()      record a session record
  *  SaveResponses()      record all responses for session
  *  ComputeRole()        compute top role
@@ -40,8 +34,7 @@
  *  GetTweaked()         fetch pattern.tweak_value values
  *  MatchPatterns()      store values in match_patterns table
  *  PatternNames()       fetch pattern names and ids in tweaked_total order
- *  PatternURLs()        fetch pattern URLs
- *  PatternImages()      fetch pattern image paths
+ *  TopPatterns()        fetch pattern data for the top patterns
  *  Mode()               DESKTOP or MOBILE
  *  Dev()                value of the 'dev' cookie; NULL if it doesn't exist
  *  Verbiage()           fetch a row from the verbiage table
@@ -250,61 +243,6 @@ function GetAnswers($language, $page) {
 } // end GetAnswers()
 
 
-/* GetReveals()
- *
- *  Fetch 'reveals' string.
- */
-
-function GetReveals($language) {
-  return(LocalString($language, MESSAGES, REVEALS));
-  
-} // end GetReveals()
-
-
-/* GetRoleName()
- *
- *  Fetch role name for this language and id.
- */
-
-function GetRoleName($language, $id) {
-  return(LocalString($language, ROLE_NAMES, $id));
-  
-} // end GetRoleName()
-
-
-/* GetRoleImage()
- *
- *  Fetch role image.
- */
-
-function GetRoleImage($id) {
-  return(LocalString(NULL, ROLE_IMGS, $id));
-  
-} // end GetRoleImage()
-
-
-/* GetRoleDescription()
- *
- *  Fetch role description.
- */
-
-function GetRoleDescription($language, $id) {
-  return(LocalString($language, ROLE_DESCRIPTIONS, $id));
-  
-} // end GetRoleDescription()
-
-
-/* GetRolePost()
- *
- *  Fetch role.post for this language and role id.
- */
-
-function GetRolePost($language, $id) {
-  return(LocalString($language, ROLE_POSTS, $id));
-  
-} // end GetRolePost()
-
-
 /* GetRecommended()
  *
  *  Get 'recommended' string.
@@ -312,17 +250,6 @@ function GetRolePost($language, $id) {
 
 function GetRecommended($language) {
   return(LocalString($language, MESSAGES, RECOMMENDED));
-  
-} // end GetRecommended()
-
-
-/* GetFull()
- *
- *  Get 'full' string.
- */
-
-function GetFull($language) {
-  return(LocalString($language, MESSAGES, FULL));
   
 } // end GetRecommended()
 
@@ -584,100 +511,60 @@ function MatchPatterns($session_id, $PatternTotals, $tweaked) {
 } // end MatchPatterns()
 
 
-/* PatternNames()
+/* TopPatterns()
  *
- *  Fetch pattern names in match_patterns.tweaked_total order.
+ *  Return data - id, name, link, cards - on the argument patterns.
  */
 
-function PatternNames($session_id, $language) {
+function TopPatterns($patnos, $language) {
   global $con;
 
-  $sth = $con->prepare("SELECT pattern_id, localstring 
- FROM match_patterns mp JOIN locals l ON mp.pattern_id = l.object_id 
- WHERE session_id = \"$session_id\" AND language = \"$language\"
-  AND itemtype = " . PATTERN_TITLES . "
- ORDER BY tweaked_total DESC");
-  $sth->execute();
-  $res = $sth->get_result();
-  $values = $res->fetch_all();
-
-  $PatternNames = array();
-
-  foreach($values as $value) {
-    $PatternNames[] = htmlspecialchars($value[1]);
-  }
-  $sth->close();
-  return($PatternNames);
-
-} // end PatternNames()
-
-
-/* PatternURLs()
- *
- *  Fetch pattern URLs in the correct language in
- *  match_patterns.tweaked_total order.
- */
-
-function PatternURLs($session_id, $language) {
-  global $con;
-
-  $sth = $con->prepare("SELECT pattern_id, localstring FROM match_patterns mp
- JOIN locals l ON mp.pattern_id = l.object_id
- WHERE session_id = $session_id AND language = \"$language\" AND itemtype = 17
- ORDER BY tweaked_total DESC");
-  $sth->execute();
-  $res = $sth->get_result();
-  $values = $res->fetch_all();
-  if(!count($values) && $language != 'en') {
-    # If we don't find the pattern URLs for this language, return those for 'en'.
-    return(PatternURLs($session_id, 'en'));
+  $i = 0;
+  foreach($patnos as $id => $tweak) {
+    $tops[$i]['id'] = $id;
+    $index[$id] = $i++;
   }
 
-  $PatternPSPlinks = array();
-    
-  foreach($values as $value) {
-    $PatternPSPlinks[] = $value[1];
-  }
-  $sth->close();
-  return($PatternPSPlinks);
-    
-} // end PatternURLs()
-
-
-/* PatternImages()
- *
- *  Compute paths to pattern image files in descending tweaked_total order.
- */
-
-function PatternImages($session_id, $language) {
-  global $con;
-  global $mode;
+  $patset = implode(',', array_keys($patnos));
   
-  $PatternImages = Array();
-  $size = ($mode == MOBILE) ? 40 : 100;
+  # Fetch the names and links from the 'locals' table.
 
-  $sth = $con->prepare("SELECT p.id, p.rpat FROM match_patterns mp
- JOIN pattern p ON mp.pattern_id = p.id
- WHERE mp.session_id = $session_id
- ORDER BY mp.tweaked_total DESC");
+  $sql = 'SELECT object_id, localstring, itemtype
+ FROM locals l
+ WHERE language = ? AND
+  itemtype IN (' . PATTERN_TITLES . ',' . PATTERN_LINKS . ')
+  AND object_id IN (' . $patset . ')';
+  $sth = $con->prepare($sql);
+  $sth->bind_param('s', $language);
   $sth->execute();
   $res = $sth->get_result();
-  $values = $res->fetch_all();
-
-  if($language != 'en' && ! file_exists("cards/$language")) {
-    # No cards for this language? Revert to 'en'.
-    $language = 'en';
-  }
-
-  foreach($values as $value) {
-    $PatternImages[] = array(
-      'image' => "cards/$language/image/$size/$value[1].jpg",
-      'text' => "cards/$language/text/$size/$value[1].jpg"
-    );
-  };
-  return($PatternImages);
+  $rows = $res->fetch_all();
   
-} // end PatternImages()
+  foreach($rows as $row)
+    if($row[2] == PATTERN_TITLES) {
+      $tops[$index[$row[0]]]['name'] = $row[1];
+    } else {
+      $tops[$index[$row[0]]]['link'] = $row[1];
+    }
+
+  # Fetch pattern.rpat to compute paths to card images.
+
+  $sth = $con->prepare("SELECT id, rpat
+ FROM pattern
+ WHERE id IN ($patset)");
+  $sth->execute();
+  $res = $sth->get_result();
+  $rows = $res->fetch_all();
+  foreach($rows as $row)
+    foreach(['image', 'text'] as $type) {
+      $file = "cards/$language/$type/100/{$row[1]}.jpg";
+      if($language != 'en' && ! file_exists($file))
+        $file = "cards/en/$type/100/{$row[1]}.jpg";
+      $tops[$index[$row[0]]]['card'][$type] = $file;
+    }
+  return($tops);
+
+} // end TopPatterns()
 
 
 /* Mode()

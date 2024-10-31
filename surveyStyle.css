@@ -36,7 +36,7 @@ body {
     margin-bottom: 1vh;
     margin-top: 1vh;
 }
-input, textarea {
+input[type="text"], textarea {
     background-color: #ffc;
     border-radius: .8vh;
 }
