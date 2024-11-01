@@ -144,14 +144,14 @@ $topPatterns = TopPatterns($bytweak, $language);
 // Look for verbiage to match this role and set of patterns.
 
 foreach($bytweak as $patno => $tweak) {
-  $Verbiage = Verbiage($toprole, $patno);
+  $Verbiage = Verbiage($toprole, $patno, $language);
   if(isset($Verbiage))
     break;
 }
 if(isset($Verbiage)) {
   $Remember = LocalString($language, MESSAGES, REMEMBER);
 } else {
-  $Verbiage = Verbiage($toprole);
+  $Verbiage = Verbiage($toprole, NULL, $language);
   $Remember = LocalString($language, MESSAGES, ASSUME);
 }
 

@@ -196,9 +196,10 @@ function LocalString($language, $itemtype, $bottom, $top = NULL) {
     // Single row. query() is the better choice.
     
     $sql = "SELECT localstring FROM locals WHERE itemtype = $itemtype AND object_id = $bottom";
-    if(isset($language)) {
+    
+    if(isset($language))
       $sql .= " AND language = '$language'";
-    }
+
     if($result = $con->query($sql)) {
       $row = $result->fetch_row();
       if(is_null($row)) {
@@ -604,18 +605,32 @@ function Dev() {
  *    a value [1..22] to specify a value from pattern.id
  *    0 to specify leading text
  *    NULL for default text used when there is none for any matching pattern
+ *
+ *  $language is a language code
+ *
+ *  No string found and the language is other than 'en', return the 'en'
+ *  string (if any).
  */
 
-function Verbiage($role, $pattern = NULL) {
+function Verbiage($role, $pattern = NULL, $language) {
   global $con;
 
-  $sql = "SELECT vstring FROM verbiage WHERE role = $role";
-  if(is_null($pattern))
-    $sql .= ' AND pattern IS NULL';
-  else
-    $sql .= " AND pattern = $pattern";
-  $result = $con->execute_query($sql);
-  $v = $result->fetch_row();
-  return(isset($v) ? $v[0] : NULL);
+  $sql = "SELECT vstring FROM verbiage WHERE role = ? AND language = ? AND pattern ";
+  if(is_null($pattern)) {
+    $sql .= 'IS NULL';
+    $sth = $con->prepare($sql);
+    $sth->bind_param('is', $role, $language);
+  } else {
+    $sql .= " = ?";
+    $sth = $con->prepare($sql);
+    $sth->bind_param('isi', $role, $language, $pattern);
+  }
+  $sth->execute();
+  $res = $sth->get_result();
+  $v = $res->fetch_row();
+  if(isset($v))
+    return($v[0]);
+  elseif($language != 'en')
+    return(Verbiage($role, $pattern, 'en'));
 
 } /* end Verbiage() */
