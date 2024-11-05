@@ -87,12 +87,10 @@ $Based = LocalString($language, MESSAGES, INSTRUCTIONS);
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
 
 <script>
-  loz = document.querySelector('#loz')
-  loz.addEventListener('click', q)
   dev = document.querySelector('#dev')
 <?php
   if(!isset($dev))
-   print("dev.style.display = 'none'");
+   print("dev.style.display = 'none'\n");
 ?>
 </script>
 
