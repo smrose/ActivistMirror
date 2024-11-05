@@ -15,6 +15,7 @@
  *  ManageLanguages  add and edit supported languages
  *  ManageTranslators edit the translators
  *  Locals           fetch strings of this type and language
+ *  AllVerbiage      fetch verbiage in the argument language
  *  Error            fail in disgrace
  *  Translate        present the form for entering strings
  *  Absorb           absorb edited strings
@@ -22,6 +23,9 @@
  *  InsertLocal      insert a row into 'locals'
  *  UpdateLocal      update a row in 'locals'
  *  DeleteLocal      delete a row from 'locals'
+ *  DeleteVerbiage   delete a row from 'verbiage'
+ *  InsertVerbiage   insert a row into 'verbiage'
+ *  UpdateVerbiage   update a row in 'verbiage'
  *  GetUsers         return array of all translators
  *  Translators      present a form for assigning translators
  *  Users            add user
@@ -29,9 +33,12 @@
  *
  * NOTES
  *
- *  Strings are held in the 'locals' table. Each has itemtype and object_id
- *  values that determine the role it plays in the system and a language that
- *  determines what language it's in:
+
+ *  Strings are held in the 'locals' and 'verbiage' tables. Each row
+ *  in 'locals' has 'itemtype' and 'object_id' values that determine the
+ *  role it plays in the system and 'language' value that determines
+ *  what language it's in. Rows in 'verbiage' have 'role' and 'pattern'
+ *  values as well as 'language'.
  *
  *   CREATE TABLE locals (
  *    local_id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -39,6 +46,14 @@
  *    language char(2) DEFAULT NULL,
  *    itemtype int DEFAULT NULL,
  *    object_id int DEFAULT NULL,
+ *   );
+ *
+ *   CREATE TABLE verbiage (
+ *    id NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ *    role int NOT NULL,
+ *    pattern int,
+ *    vstring varchar(1023),
+ *    language char(2)
  *   );
  *
  *  The 'language' table has a row for each language we support in which
@@ -82,11 +97,13 @@
  *  They can also enter translations.
  */
 
+const VERBIAGE_T = 30;
+
 
 /* ItemTypes()
  *
  *  Return a list of all the itemtypes for which there is at least one value
- *  in the "locals" table.
+ *  in the "locals" table. Plus, "verbiage."
  */
 
 function ItemTypes($itemtype_id = null) {
@@ -104,6 +121,7 @@ function ItemTypes($itemtype_id = null) {
   $res = $sth->get_result();
   $itemtypes = $res->fetch_all();
   $sth->close();
+  $itemtypes[] = [VERBIAGE_T, 'verbiage'];
   return $itemtypes;
 
 } /* end ItemTypes() */
@@ -150,7 +168,7 @@ function GetLanguages($code = null) {
  *  they are certified to create and edit content.
  *
  *  US English is a special case: it's the default source language and
- *  is never a destination language.				    
+ *  is never a destination language.
  */
 
 function ChooseLanguages($langs) {
@@ -255,11 +273,43 @@ function Locals($itemtype, $language) {
   $sth->bind_param('is', $itemtype, $language);
   $sth->execute();
   $res = $sth->get_result();
-  $itemtypes = $res->fetch_all();
+  $locals = $res->fetch_all(MYSQLI_ASSOC);
   $sth->close();
-  return $itemtypes;
+  
+  foreach($locals as $local)
+    $r[$local['object_id']] = $local;
+  return $r;
 
 } /* end Locals() */
+
+
+/* AllVerbiage()
+ *
+ *  Return rows from 'verbiage' in the argument language.
+ */
+ 
+function AllVerbiage($language) {
+  global $con;
+
+  $sth = $con->prepare('SELECT vstring, role, pattern, r.name AS rolename,
+  p.title AS patname
+ FROM verbiage v
+  JOIN roles r ON v.role = r.id_role
+  LEFT JOIN pattern p ON v.pattern = p.id 
+ WHERE language = ?
+ ORDER BY role, pattern');
+  $sth->bind_param('s', $language);
+  $sth->execute();
+  $res = $sth->get_result();
+  $verbiages = $res->fetch_all(MYSQLI_ASSOC);
+  foreach($verbiages as $verbiage) {
+    $k = $verbiage['role'] .
+      (isset($verbiage['pattern']) ? "_{$verbiage['pattern']}" : '');
+    $r[$k] = $verbiage;
+  }
+  return($r);
+  
+} /* end AllVerbiage() */
 
 
 /* Error()
@@ -291,25 +341,29 @@ function Translate($opts) {
   $sname = GetLanguages($opts['source']);
   $dname = GetLanguages($opts['destination']);
 
-  /* Fetch all the locals that match the source language and itemtype.
-   * [localstring, local_id, object_id] */
-
-  $sources = Locals($opts['itemtype'], $opts['source']);
-
-  // Fetch all the locals that match the destination language and itemtype.
+  if($opts['itemtype'] == VERBIAGE_T) {
   
-  $destinations = Locals($opts['itemtype'], $opts['destination']);
-  $dbyobjid = [];
-  foreach($destinations as $destination)
-    $dbyobjid[$destination[2]] = $destination;
+    // Fetch verbiage records matching source and destination languages.
+
+    $sources = AllVerbiage($opts['source']);
+    $destinations = AllVerbiage($opts['destination']);
+  } else {
+
+    // Fetch all the locals that match the source language and itemtype.
+
+    $sources = Locals($opts['itemtype'], $opts['source']);
+    $destinations = Locals($opts['itemtype'], $opts['destination']);
+  }
+
+  // Build a form for translating.
 
   print "<h2>Translating <em>$itemtype</em> elements from <em>${sname['description']}</em> to <em>${dname['description']}</em></h2>
-  
+
 <form method=\"POST\" class=\"cronut\">
-<input type=\"hidden\" name=\"source\" value=\"${opts['source']}\">
-<input type=\"hidden\" name=\"destination\" value=\"${opts['destination']}\">
-<input type=\"hidden\" name=\"itemtype\" value=\"${opts['itemtype']}\">
-<input type=\"hidden\" name=\"state\" value=\"absorb\">
+ <input type=\"hidden\" name=\"source\" value=\"${opts['source']}\">
+ <input type=\"hidden\" name=\"destination\" value=\"${opts['destination']}\">
+ <input type=\"hidden\" name=\"itemtype\" value=\"${opts['itemtype']}\">
+ <input type=\"hidden\" name=\"state\" value=\"absorb\">
 ";
 
   /* Loop on elements in the source language, adding a textarea to the form
@@ -319,28 +373,35 @@ function Translate($opts) {
 
   foreach($sources as $source) {
 
-    $object_id = $source[2];
-
-    if(array_key_exists($object_id, $dbyobjid)) {
-      $destination = $dbyobjid[$source[2]];
-      $value = $destination[0];
+    if($opts['itemtype'] == VERBIAGE_T) {
+      $k = $source['role'] .
+        (isset($source['pattern']) ? "_{$source['pattern']}" : '');
+      $ovalue = $source['vstring'];
+      $value = (isset($destinations[$k])) ? $destinations[$k]['vstring'] : '';
+      $pattern = isset($source['pattern'])
+        ? ($source['pattern'] ? $source['patname'] : 'none matched')
+        : 'n/a';
+      $placeholder = " placeholder=\"role: {$source['rolename']}  pattern: $pattern\"";
     } else {
-      $value = '';
+      $k = $source['object_id'];
+      $ovalue = $source['localstring'];
+      $value = (isset($destinations[$k])) ? $destinations[$k]['localstring'] : '';
+      $placeholder = '';
     }
-    
-    print "<div class=\"mute\">${source[0]}</div>
-<div><textarea name=\"$object_id\" style=\"width: 100%\">$value</textarea></div>
-";
+
+    print "<div class=\"mute\">$ovalue</div>
+  <div><textarea name=\"$k\" style=\"width: 100%\"$placeholder>$value</textarea></div>
+  ";
   } // end loop on elements
-  
+
   print "<div class=\"sub\">
  <input type=\"submit\" name=\"submit\" value=\"Absorb\">
  <input type=\"submit\" name=\"submit\" value=\"Absorb and Continue\">
  <input type=\"submit\" name=\"submit\" value=\"Cancel\">
-</div>
+ </div>
 </form>
 ";
-  
+
 } /* end Translate() */
 
 
@@ -354,59 +415,95 @@ function Absorb($opts) {
 
   // get the existing strings of this itemtype and destination language.
 
-  $destinations = Locals($opts['itemtype'], $opts['destination']);
-  $dbyobjid = [];
-  foreach($destinations as $destination)
-    $dbyobjid[$destination[2]] = $destination;
+  if($opts['itemtype'] == VERBIAGE_T) {
+    $destinations = AllVerbiage($opts['destination']);
+    $vfield = 'vstring';
+  } else {
+    $destinations = Locals($opts['itemtype'], $opts['destination']);
+    $vfield = 'localstring';
+  }
     
   // loop on strings in the form
 
-  foreach($_POST as $object_id => $newvalue) {
-    if(!preg_match('/^\d+$/', $object_id))
+  foreach($_POST as $k => $newvalue) {
+
+    if(preg_match('/^(\d+)_(\d+)$/', $k, $matches)) {
+      $role = $matches[1];
+      $pattern = $matches[2];
+    } elseif(preg_match('/^(\d+)$/', $k, $matches)) {
+      if($opts['itemtype'] == VERBIAGE_T) {
+        $role = $matches[1];
+        $pattern = NULL;
+      } else
+        $object_id = $k;
+    } else
       continue;
 
-    if(array_key_exists($object_id, $dbyobjid)) {
+    if(isset($destinations[$k])) {
 
       // there was an existing value for this string
       
-      $oldvalue = $dbyobjid[$object_id][0];
+      $oldvalue = $destinations[$k][$vfield];
       if($newvalue != $oldvalue) {
 
         // the new value is different
 
-	if(strlen($newvalue)) {
+        if(strlen($newvalue)) {
 
-	  // update the value
+          // update the value
 
-          UpdateLocal([
-	    'localstring' => $newvalue,
-	    'object_id' => $object_id,
-	    'itemtype' => $opts['itemtype'],
-	    'language' => $opts['destination']
-	  ]);
-	  $updates++;
-	} else {
+          if($opts['itemtype'] == VERBIAGE_T)
+            UpdateVerbiage([
+              'vstring' => $newvalue,
+              'role' => $role,
+              'pattern' => $pattern,
+              'language' => $opts['destination']
+            ]);
+          else
+            UpdateLocal([
+              'localstring' => $newvalue,
+              'object_id' => $object_id,
+              'itemtype' => $opts['itemtype'],
+              'language' => $opts['destination']
+              ]);
+          $updates++;
+        } else {
 
-	  // the new value is empty; delete
+          // the new value is empty; delete
 
-          DeleteLocal([
-	    'object_id' => $object_id,
-	    'itemtype' => $opts['itemtype'],
-	    'language' => $opts['destination']
-	  ]);
-	  $deletions++;	  
-	}
+          if($opts['itemtype'] == VERBIAGE_T)
+            DeleteVerbiage([
+              'role' => $role,
+              'pattern' => $pattern,
+              'language' => $opts['destination']
+            ]);
+          else
+            DeleteLocal([
+              'object_id' => $object_id,
+              'itemtype' => $opts['itemtype'],
+              'language' => $opts['destination']
+            ]);
+          $deletions++;          
+        }
       }
     } elseif(strlen($newvalue)) {
 
       // this is a new value; insert
 
-      InsertLocal([
-        'localstring' => $newvalue,
-        'object_id' => $object_id,
-	'itemtype' => $opts['itemtype'],
-        'language' => $opts['destination']
-      ]);
+      if($opts['itemtype'] == VERBIAGE_T)
+        InsertVerbiage([
+          'vstring' => $newvalue,
+          'role' => $role,
+          'pattern' => $pattern,
+          'language' => $opts['destination']
+        ]);
+      else
+        InsertLocal([
+          'localstring' => $newvalue,
+          'object_id' => $object_id,
+          'itemtype' => $opts['itemtype'],
+          'language' => $opts['destination']
+        ]);
       $insertions++;
     }
   } // end loop on post parameters
@@ -483,9 +580,9 @@ function InsertLocal($opt) {
  $sth = $con->prepare($sql);
  $sth->bind_param('ssii',
                   $opt['localstring'],
-		  $opt['language'],
-		  $opt['object_id'],
-  		  $opt['itemtype']);
+                  $opt['language'],
+                  $opt['object_id'],
+                    $opt['itemtype']);
  $sth->execute();
  $sth->close();
 
@@ -505,9 +602,9 @@ function UpdateLocal($opt) {
  $sth = $con->prepare($sql);
  $sth->bind_param('siis',
                   $opt['localstring'],
-		  $opt['object_id'],
-  		  $opt['itemtype'],
-  		  $opt['language']);
+                  $opt['object_id'],
+                    $opt['itemtype'],
+                    $opt['language']);
  $sth->execute();
  $sth->close();
 
@@ -526,13 +623,97 @@ function DeleteLocal($opt) {
  WHERE object_id = ? AND itemtype = ? AND language = ?';
  $sth = $con->prepare($sql);
  $sth->bind_param('iis',
-		  $opt['object_id'],
-  		  $opt['itemtype'],
-  		  $opt['language']);
+                  $opt['object_id'],
+                    $opt['itemtype'],
+                    $opt['language']);
  $sth->execute();
  $sth->close();
 
 } /* end DeleteLocal() */
+
+
+/* InsertVerbiage()
+ *
+ *  Insert one record in 'verbiage'.
+ */
+ 
+function InsertVerbiage($opt) {
+  global $con;
+
+  $sql = 'INSERT INTO verbiage (vstring, language, role, pattern)
+ VALUES(?,?,?,?)';
+ $sth = $con->prepare($sql);
+ $sth->bind_param('ssii',
+                  $opt['vstring'],
+                  $opt['language'],
+                  $opt['role'],
+                    $opt['pattern']);
+ $sth->execute();
+ $sth->close();
+
+} /* end InsertVerbiage() */
+
+
+/* UpdateVerbiage()
+ *
+ *  Update one record in 'verbiage'.
+ */
+ 
+function UpdateVerbiage($opt) {
+  global $con;
+
+  $sql = 'UPDATE verbiage SET vstring = ?
+ WHERE role = ? AND language = ?';
+  if(isset($opt['pattern']))
+    $sql .= ' AND pattern = ?';
+  else
+    $sql .= ' AND pattern IS NULL';
+  $sth = $con->prepare($sql);
+  if(isset($opt['pattern']))
+    $sth->bind_param('sisi',
+                     $opt['vstring'],
+                     $opt['role'],
+                     $opt['language'],
+                     $opt['pattern']);
+  else
+    $sth->bind_param('sis',
+                     $opt['vstring'],
+                     $opt['role'],
+                     $opt['language']);
+ $sth->execute();
+ $sth->close();
+
+} /* end UpdateVerbiage() */
+
+
+/* DeleteVerbiage()
+ *
+ *  Delete one record from 'verbiage'.
+ */
+ 
+function DeleteVerbiage($opt) {
+  global $con;
+
+  $sql = 'DELETE FROM verbiage
+ WHERE role = ? AND language = ?';
+  if(isset($opt['pattern']))
+    $sql .= ' AND pattern = ?';
+  else
+    $sql .= ' AND pattern IS NULL';
+  $sth = $con->prepare($sql);
+  if(isset($opt['pattern']))
+    $sth->bind_param('isi',
+                     $opt['role'],
+                     $opt['language'],
+                     $opt['pattern']);
+  else
+    $sth->bind_param('is',
+                     $opt['role'],
+                     $opt['language']);
+ $sth->execute();
+ $sth->close();
+
+} /* end DeleteVerbiage() */
 
 
 /* GetUsers()
@@ -735,7 +916,7 @@ function SetTranslators() {
     foreach($lcodes as $lcode)
       if(!in_array($lcode, $t))
         $deletes[] = [$uid, $lcode];
-	
+        
   } // end loop on form elements
   
   # Perform inserts.
@@ -809,10 +990,12 @@ function DeleteTranslator($userid, $lcode) {
     .challah {
       display: grid;
       grid-template-columns: repeat(2, auto);
+      grid-column-gap: .5vw;
       width: max-content;
       border: 2px solid #666;
-      background-color: rgb(240, 240, 240, 30%);
       margin-left: 1em;
+    }
+    .mute {
     }
     .challah div {
       padding: .2em;
@@ -875,7 +1058,9 @@ function DeleteTranslator($userid, $lcode) {
       padding: .5em;
     }
     .cronut div {
-      margin: .2em;
+      margin: .1em;
+      padding: .1em;
+      background-color: rgb(240, 240, 240, 60%);
     }
     .sub {
       text-align: center;
