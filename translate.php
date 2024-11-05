@@ -205,7 +205,7 @@ function ChooseLanguages($langs) {
     $selected = ($code == $defaultSource) ? ' selected' : '';
     $source .= " <option value=\"${language['code']}\"$selected>${language['description']}</option>\n";
 
-    if($code != 'en') {
+    if($super || $code != 'en') {
       $selected = ($code == $defaultDest) ? ' selected' : '';
       $able = (!$super && !in_array($code, $langs)) ? ' disabled' : '';
       $destination .= " <option value=\"${language['code']}\"$able$selected>${language['description']}</option>\n";
@@ -734,6 +734,14 @@ function GetUsers() {
 /* GetUser()
  *
  *  Return a translator.
+ *
+ *   CREATE TABLE `translator` (
+ *    id integet NOT NULL AUTO_INCREMENT,
+ *    userid varchar(16) NOT NULL,
+ *    super tinyint(1) NOT NULL DEFAULT 0,
+ *    PRIMARY KEY (id),
+ *    UNIQUE KEY userid (userid)
+ *   );
  */
 
 function GetUser($username) {
@@ -994,6 +1002,7 @@ function DeleteTranslator($userid, $lcode) {
       width: max-content;
       border: 2px solid #666;
       margin-left: 1em;
+      background-color: rgb(240, 240, 240, 30%);
     }
     .mute {
     }
@@ -1018,7 +1027,6 @@ function DeleteTranslator($userid, $lcode) {
     }
     .tform div {
       padding: .2em;
-      border: 1px solid #ccc;
     }
     .thead {
       text-align: center;
@@ -1144,7 +1152,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
       # presenting a form for translation entry
     
       $source = $_POST['source'];
-      if($source == $destination)
+      if($source == $destination && !$user['super'] && $source != 'en')
         Error("Source and destination languages may not be the same");
       else if($source == 'source' || $destination == 'destination')
         Error("You failed to specify a source and destination language");
