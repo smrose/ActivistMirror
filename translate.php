@@ -782,8 +782,9 @@ function UpdateVerbiage($opt) {
                      $opt['language'],
                      $opt['pattern']);
   else
-    $sth->bind_param('sis',
+    $sth->bind_param('siis',
                      $opt['vstring'],
+                     $opt['translator'],
                      $opt['role'],
                      $opt['language']);
  $sth->execute();
