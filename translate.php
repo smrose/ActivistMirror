@@ -11,7 +11,10 @@
  *
  *  ItemTypes        return a list of all the itemtypes
  *  GetLanguages     return a list of supported languages
- *  ChooseLanguages  select languages and item type
+ *  GetRoles         return roles
+ *  GetPatterns      return patterns
+ *  Choose           select languages and item type
+ *  NewString        create a new string in locals or verbiage
  *  ManageLanguages  add and edit supported languages
  *  ManageTranslators edit the translators
  *  Locals           fetch strings of this type and language
@@ -27,9 +30,13 @@
  *  InsertVerbiage   insert a row into 'verbiage'
  *  UpdateVerbiage   update a row in 'verbiage'
  *  GetUsers         return array of all translators
+ *  GetUser          return a translator
  *  Translators      present a form for assigning translators
  *  Users            add user
  *  SetTranslators   absorb setting of translators
+ *  InsertTranslator insert a translator record
+ *  DeleteTranslator delete a translator record
+ *  CreateString     create a new 'en' string in locals
  *
  * NOTES
  *
@@ -159,19 +166,47 @@ function GetLanguages($code = null) {
 } /* end GetLanguages() */
 
 
-/* ChooseLanguages()
+/* GetRoles()
  *
- *  Present a form for selection of the itemtype and source and
- *  destination languages.
- *
- *  $langs lists, for a non-superuser, for which destination languages
- *  they are certified to create and edit content.
- *
- *  US English is a special case: it's the default source language and
- *  is never a destination language.
+ *  Return an array of roles as associative arrays with 'id_role' and
+ *  'name' fields.
  */
 
-function ChooseLanguages($langs) {
+function GetRoles() {
+  global $con;
+
+  $sth = $con->prepare('SELECT id_role, name FROM roles ORDER BY id_role');
+  $sth->execute();
+  $res = $sth->get_result();
+  return($res->fetch_all(MYSQLI_ASSOC));
+  
+} /* end GetRoles() */
+
+
+/* GetPatterns()
+ *
+ *  Return an array of patterns as associative arrays with 'id' and
+ *  'title' fields, ordered by title.
+ */
+
+function GetPatterns() {
+  global $con;
+
+  $sth = $con->prepare('SELECT id, title FROM pattern ORDER BY title');
+  $sth->execute();
+  $res = $sth->get_result();
+  return($res->fetch_all(MYSQLI_ASSOC));
+  
+} /* end GetPatterns() */
+
+
+/* Choose()
+ *
+ *  Present a form for selection of the itemtype and source and
+ *  destination languages for translation.
+ */
+
+function Choose($langs) {
   global $user;
 
   $super = $user['super'];
@@ -216,7 +251,8 @@ function ChooseLanguages($langs) {
 
   foreach($itemtypes as $it) {
     $selected = ($it[0] == $defaultItem) ? ' selected' : '';
-    $itemtype .= " <option value=\"${it[0]}\"$selected>${it[1]}</option>\n";
+    $opt = " <option value=\"${it[0]}\"$selected>${it[1]}</option>\n";
+    $itemtype .= $opt;
   }
 
   $source .= "</select>\n";
@@ -235,7 +271,67 @@ function ChooseLanguages($langs) {
 </form>
 ";
 
-} /* end ChooseLanguages() */
+} /* end Choose() */
+
+
+/* NewString()
+ *
+ *  Present a form for selecting an itemtype for creation of a new string.
+ *
+ *  A row in 'verbiage' is quite different from one in 'locals' - it needs
+ *  a role and pattern to be specified.
+ */
+
+function NewString() {
+
+  $itemtypes = ItemTypes(); // itemtype_id, itemtype
+  $roles = GetRoles();
+  $patterns = GetPatterns();
+  
+
+  $rolesel = "<select name=\"role\" id=\"role\" disabled>\n";
+  foreach($roles as $role)
+    $rolesel .= " <option value=\"{$role['id_role']}\">{$role['name']}</option>\n";
+  $rolesel .= "</select>\n";
+
+  $patternsel = "<select name=\"pattern\" id=\"pattern\" disabled>
+";
+  foreach($patterns as $pattern)
+    $patternsel .= " <option value=\"{$pattern['id']}\">{$pattern['title']}</option>\n";
+  $patternsel .= "</select>\n";
+
+  $nitemtype = "<select name=\"itemtype\" id=\"news\">\n";
+  foreach($itemtypes as $it) {
+    $selected = ($it[0] == $defaultItem) ? ' selected' : '';
+    $opt = " <option value=\"${it[0]}\"$selected>${it[1]}</option>\n";
+    $nitemtype .= $opt;
+  }
+  $nitemtype .= "</select>\n";
+
+  print "<h2>Create New String</h2>
+
+<p style=\"font-weight: bold\">Select a string type and press the
+<code>Create</code> button to create an empty new string of the selected
+type.</p>
+
+<form method=\"POST\" class=\"challah\">
+ <input name=\"state\" type=\"hidden\" value=\"new\">
+ 
+ <div class=\"chead\">String type:</div>
+ <div>$nitemtype</div>
+ 
+ <div class=\"chead\">Role:</div>
+ <div>$rolesel</div>
+ 
+ <div class=\"chead\">Pattern:</div>
+ <div>$patternsel</div>
+
+ <div class=\"csub\"><input type=\"submit\" name=\"submit\" value=\"Select\"></div>
+ 
+</form>
+";
+
+} // end NewString()
 
 
 /* ManageLanguages()
@@ -982,6 +1078,32 @@ function DeleteTranslator($userid, $lcode) {
 } // end DeleteTranslator()
 
 
+/* CreateString()
+ *
+ *  Create a new string.
+ */
+
+function CreateString2($itemtype) {
+  global $con;
+  
+  $sth = $con->prepare('SELECT max(object_id) FROM locals WHERE itemtype = ?');
+  $sth->bind_param('i', $itemtype);
+  $sth->execute();
+  $res = $sth->get_result();
+  $object_id = $res->fetch_column();
+  $object_id++;
+  
+  InsertLocal([
+    'localstring' => '',
+    'object_id' => $object_id,
+    'itemtype' => $itemtype,
+    'language' => 'en'
+  ]);
+  print "<p class=\"alert\">Inserted new string with itemtype $itemtype and object id $object_id</p>\n";
+  
+} // end CreateString()
+
+
 ?>
 <!DOCTYPE html>
 <html> 
@@ -1082,7 +1204,24 @@ function DeleteTranslator($userid, $lcode) {
     .sub input:hover {
       background-color: #edd;
     }
+    #role {
+    }
+    #pattern {
+    }
   </style>
+  
+  <script>
+    function isverb(event) {
+      if(news.value == verbiage) {
+        role.disabled = false
+        pattern.disabled = false
+      } else {
+        role.disabled = true
+        pattern.disabled = true
+      }
+
+    } // end isverb()
+  </script>
 </head>
 
 <body>
@@ -1163,6 +1302,32 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
       ]);
       $rv = 1;
     }
+  } elseif($_POST['state'] == 'new') {
+
+    /* A new string. */
+
+    if($_POST['itemtype'] == VERBIAGE_T) {
+
+      /* Creating a new 'verbiage' string is fundamentally different from
+       * any other type: 'role' and 'pattern' are specified and must be
+       * unique. */
+
+       $role = $_POST['role'];
+       $pattern = $_POST['pattern'];
+       if(!is_null(Verbiage($role, $pattern, 'en')))
+         Error("Verbiage entries must be unique across role and pattern");
+       else
+         InsertVerbiage([
+	   'vstring' => '',
+	   'role' => $role,
+	   'pattern' => $pattern,
+	   'language' => 'en'
+	 ]);
+	 print "<p class=\"alert\">Added a row to the <code>verbiage</code> table.</p>\n";
+    } else {
+       $itemtype = $_POST['itemtype'];
+       CreateString($itemtype);
+    }
   } elseif($_POST['state'] == 'st') {
 
     // absorbing translators
@@ -1177,7 +1342,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
 }
 
 if(!$rv) {
-  ChooseLanguages($languages);
+  Choose($languages);
+  NewString();
   if($user['super']) { // superusers create and assign translators
     Translators();
     Users();
@@ -1189,6 +1355,16 @@ if(!$rv) {
 </div>
 
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
+
+<script>
+<?php
+ print(' verbiage = ' . VERBIAGE_T . "\n");
+?>
+ news = document.querySelector('#news')
+ role = document.querySelector('#role')
+ pattern = document.querySelector('#pattern')
+ news.addEventListener('change', isverb)
+</script>
 
 </body>
 </html>
