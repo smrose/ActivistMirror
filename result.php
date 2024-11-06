@@ -216,6 +216,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
         row-gap: .4vh;
     }
     #verbiage {
+      margin-top: 2em;
     }
     #remember {
     }
