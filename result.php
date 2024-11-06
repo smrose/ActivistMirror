@@ -172,94 +172,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
  <meta charset="utf-8">
   <title>Playing the Activist Mirror Game</title>
   <link rel="stylesheet" href="surveyStyle.css">
-  <style>
-    #tcol {
-        display: grid;
-        grid-template-columns: repeat(2, 50%);
-        grid-column-gap: 1vw;
-        margin: 1vw;
-    }
-    #rolepanel {
-        backdrop-filter: blur(8px);
-        background-color: rgb(255 255 255 / 20%);
-        padding: .5vw;
-    }
-    #revpan {
-        text-align: center;
-    }
-    #reveal {
-            font-weight: 700;
-        font-size: 1.4vw;
-    }
-    #role {
-            font-weight: 700;
-        font-size: 3vw;
-        margin-bottom: 2vh;
-    }
-    #rimagectnr {
-        margin-bottom: 1vh;
-    }
-    #rimage {
-        left: auto;
-        width: 50%;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    #patterns {
-      padding-right: 1vw;
-    }
-    #twotwo {
-        display: grid;
-        grid-template-columns: repeat(2, auto);
-        column-gap: .4vw;
-        row-gap: .4vh;
-    }
-    #verbiage {
-      margin-top: 2em;
-    }
-    #remember {
-    }
-    #deets {
-            text-align: right;
-        font-size: 1vw;
-        margin-bottom: 1vh;
-        margin-right: 1vw;
-    }
-    #twotwo div {
-        margin: auto;
-    }
-    #feed {
-      border: 1px solid #bbb;
-      width: max-content;
-      position: relative;
-      margin: auto;
-    }
-    #sub {
-      background-color: #833;
-      color: white;
-      border: 1px solid #555;
-      border-radius: 8px;
-      position: absolute;
-      right: 4px;
-      bottom: 4px;
-      font-weight: 500;
-    }
-    #ta {
-      border: none;
-    }
-    #selcont {
-      position: fixed;
-      top: 0;
-      z-index: 1;
-      right: 0;
-      left: 0;
-      text-align: center;
-      background-color: rgb(240,255,240,50%);
-      border: 1px solid tan;
-      padding: 2px;
-    }
-  </style>
+  <link rel="stylesheet" href="result.css">
 
   <script>
     function card(event) {
@@ -349,6 +262,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 </head>
 
 <body>
+
   <div id="selcont">
     <input type="button" id="resetb" value="Reset">
     <?=$roleSelect?>
@@ -357,6 +271,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
     <?=$patSelect[3]?>
     <?=$patSelect[4]?>
   </div>
+
   <div id="tcol">
     <div id="rolepanel">
       <div id="revpan">
@@ -374,9 +289,9 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
       <p>
         <?=$note?>
       </p>
-      <p>
+      <div id="feedh">
         <?=$feed?>
-      </p>
+      </div>
       <div id="feed">
         <textarea rows="4" cols="80" id="ta" placeholder="<?=$feedph?>"></textarea>
         <button id="sub">Submit feedback</button>
