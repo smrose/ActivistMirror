@@ -26,9 +26,9 @@
  *  InsertLocal      insert a row into 'locals'
  *  UpdateLocal      update a row in 'locals'
  *  DeleteLocal      delete a row from 'locals'
- *  DeleteVerbiage   delete a row from 'verbiage'
  *  InsertVerbiage   insert a row into 'verbiage'
  *  UpdateVerbiage   update a row in 'verbiage'
+ *  DeleteVerbiage   delete a row from 'verbiage'
  *  GetUsers         return array of all translators
  *  GetUser          return a translator
  *  Translators      present a form for assigning translators
@@ -260,9 +260,13 @@ function Choose($langs) {
   $itemtype .= "</select>\n";
 
   print "<h2>Translate</h2>
+  
 <p style=\"font-weight: bold\">Start by selecting a source and destination language and the type of strings you intend to translate.</p>
+";
+  if($super)
+    print "<p style=\"font-weight: bold\">Choose 'en' as both the source and destination language to edit the English text of a string.</p>\n";
 
-<form method=\"POST\" class=\"challah\">
+  print "<form method=\"POST\" class=\"challah\">
 <input name=\"state\" type=\"hidden\" value=\"lang\">
 <div class=\"chead\">Source language:</div><div>$source</div>
 <div class=\"chead\">Destination language:</div><div>$destination</div>
@@ -414,7 +418,7 @@ function AllVerbiage($language) {
  */
 
 function Error($s) {
-  print "<p>$s</p>\n";
+  print "<p class=\"error\">$s</p>\n";
   exit;
 
 } /* end Error() */
@@ -507,7 +511,9 @@ function Translate($opts) {
  */
 
 function Absorb($opts) {
-   $insertions = $updates = $deletions = 0;
+  global $user;
+  
+  $insertions = $updates = $deletions = 0;
 
   // get the existing strings of this itemtype and destination language.
 
@@ -553,14 +559,16 @@ function Absorb($opts) {
               'vstring' => $newvalue,
               'role' => $role,
               'pattern' => $pattern,
-              'language' => $opts['destination']
+              'language' => $opts['destination'],
+	      'translator' => $user['id']
             ]);
           else
             UpdateLocal([
               'localstring' => $newvalue,
               'object_id' => $object_id,
               'itemtype' => $opts['itemtype'],
-              'language' => $opts['destination']
+              'language' => $opts['destination'],
+	      'translator' => $user['id']
               ]);
           $updates++;
         } else {
@@ -693,11 +701,12 @@ function InsertLocal($opt) {
 function UpdateLocal($opt) {
   global $con;
 
-  $sql = 'UPDATE locals SET localstring = ?
+  $sql = 'UPDATE locals SET localstring = ?, translator = ?
  WHERE object_id = ? AND itemtype = ? AND language = ?';
  $sth = $con->prepare($sql);
- $sth->bind_param('siis',
+ $sth->bind_param('siiis',
                   $opt['localstring'],
+                  $opt['translator'],
                   $opt['object_id'],
                     $opt['itemtype'],
                     $opt['language']);
@@ -758,7 +767,7 @@ function InsertVerbiage($opt) {
 function UpdateVerbiage($opt) {
   global $con;
 
-  $sql = 'UPDATE verbiage SET vstring = ?
+  $sql = 'UPDATE verbiage SET vstring = ?, translator = ?
  WHERE role = ? AND language = ?';
   if(isset($opt['pattern']))
     $sql .= ' AND pattern = ?';
@@ -766,8 +775,9 @@ function UpdateVerbiage($opt) {
     $sql .= ' AND pattern IS NULL';
   $sth = $con->prepare($sql);
   if(isset($opt['pattern']))
-    $sth->bind_param('sisi',
+    $sth->bind_param('siisi',
                      $opt['vstring'],
+                     $opt['translator'],
                      $opt['role'],
                      $opt['language'],
                      $opt['pattern']);
