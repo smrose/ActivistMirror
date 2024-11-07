@@ -47,6 +47,9 @@ function RoleBar() {
 
 include "am.php";
 
+preg_match('/^(.+)\/[^\/]+$/', $_SERVER['SCRIPT_NAME'], $match);
+$spath = $match[1];
+
 // Main program follows.
 
 $debug = 2; // calls to Debug() with $level <= $debug will emit
@@ -90,7 +93,8 @@ foreach(['group', 'project', 'prompt'] as $meta)
     $session[$meta] = $_POST[$meta];
 if((Dev() !== NULL))
   $session['dev'] = Dev();
-$session_id = RecordSession($session);
+$thisSession = RecordSession($session);
+$session_id = $thisSession['session_id'];
 
 // Save the answers for this user session to the 'responses' table.
 
@@ -186,8 +190,26 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
         div.innerHTML = '<a href="' + pattern + '" target="_blank"><img src="' + textCard + '"></a>'
     } // end card()
 
-    function subf(event) {
-      alert('subf()')
+
+    /* subf()
+     *
+     *  Handle submission of suggestions by calling suggestion.php.
+     */
+
+    async function subf(event) {
+      url = service + session_id
+      suggestion = ta.value
+
+      payload = JSON.stringify({
+        suggestion: suggestion,
+        rando: rando
+      })
+      request = new Request(url, {
+        method: "POST",
+        body: payload
+      })
+      response = await fetch(request)
+
     } // end subf()
 
     function resetf(event) {
@@ -336,9 +358,13 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
     for(img of imgs) {
          img.addEventListener('click', card)
     }
+    const server = '<?=$_SERVER['SERVER_NAME']?>'
+    const spath = '<?=$spath?>'
+    let service = 'https://' + server + spath + '/suggestion.php/session/'
     sub = document.querySelector('#sub')
     sub.addEventListener('click', subf)
     dev = document.querySelector('#dev')
+    ta = document.querySelector('#ta')
 
     roleselect = document.querySelector('#roleselect')
     roleselect.addEventListener('change', roled)
@@ -363,6 +389,9 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 <?php
   if(!isset($session['dev']))
     print("dev.style.display = 'none'; selcont.style.display = 'none'");
+  print "    rando = {$thisSession['rando']}
+    session_id = {$thisSession['session_id']}
+";
 ?>
   </script>
 

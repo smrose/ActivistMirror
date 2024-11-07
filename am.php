@@ -269,25 +269,28 @@ function RecordSession($session) {
     'group' => NULL,
     'project' => NULL,
     'prompt' => NULL,
-    'dev' => NULL
+    'dev' => NULL,
   ];
 
   foreach($session as $column => $value)
     $param[$column] = $value;
+  $param['rando'] = mt_rand();
 
-  $sth = $con->prepare("INSERT INTO sessions(uid, language, `group`, project, prompt, dev) VALUES(?, ?, ?, ?, ?, ?)");
-  $sth->bind_param('isssss', $param['uid'], $param['language'], $param['group'],
-                   $param['project'], $param['prompt'], $param['dev']);
+  $sth = $con->prepare("INSERT INTO sessions(uid, language, `group`, project, prompt, dev, rando) VALUES(?, ?, ?, ?, ?, ?, ?)");
+  $sth->bind_param('isssssi', $param['uid'], $param['language'],
+                   $param['group'], $param['project'], $param['prompt'],
+		   $param['dev'], $param['rando']);
   $sth->execute();
   $sth->close();
   
   // no user input involved, no prepare() required
 
-  $result = $con->query('SELECT max(session_id) FROM sessions');
-  $row = $result->fetch_row();
-  $session_id = $row[0];
+  $result = $con->query('SELECT session_id, rando
+ FROM sessions
+ ORDER BY session_id DESC LIMIT 1');
+  $row = $result->fetch_assoc();
   $result->free();
-  return($session_id);
+  return($row);
 
 } // end RecordSession()
 
