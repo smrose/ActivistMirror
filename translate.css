@@ -1,0 +1,95 @@
+body {
+  background-image: url("img/SummerWinter1.png");
+  font-family: "Inria Sans", sans-serif;
+}
+.challah {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  grid-column-gap: .5vw;
+  width: max-content;
+  border: 2px solid #666;
+  margin-left: 1em;
+  background-color: rgb(240, 240, 240, 30%);
+}
+.mute {
+}
+.challah div {
+  padding: .2em;
+}
+.chead {
+  text-align: right;
+  font-weight: bold;
+}
+.csub {
+  text-align: center;
+  grid-column: span 2;
+}
+.tform {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  width: max-content;
+  border: 2px solid #666;
+  background-color: rgb(240, 240, 240, 30%);
+  margin-left: 1em;
+}
+.tform div {
+  padding: .2em;
+}
+.thead {
+  text-align: center;
+  font-weight: bold;
+}
+.tfield {
+  text-align: right;
+  font-weight: bold;
+}
+.tforms {
+  text-align: center;
+  grid-column: span 2;
+}
+#brand {
+  font-family: "Archivo Black", sans-serif;
+  font-size: 5vw;
+  font-weight: 800;
+  position: fixed;
+  bottom: 1vh;
+  left: 1vh;
+  width: auto;
+  color: rgb(0,0,0,20%);
+  text-align: center;
+  z-index: -1;
+}
+.a {
+  transform: scale(-1,1);
+  display: inline-block;
+}
+.alert {
+  font-weight: 600;
+}
+.cronut {
+  display: grid;
+  grid-template-columns: repeat(2, 50%);
+  background-color: rgb(0,0,0,10%);
+  padding: .5em;
+}
+.cronut div {
+  margin: .1em;
+  padding: .1em;
+  background-color: rgb(240, 240, 240, 60%);
+}
+.sub {
+  text-align: center;
+  grid-column: span 2;
+}
+.sub input {
+  font-weight: 600;
+  background-color: #dcc;
+  border: 2px solid tan;
+}
+.sub input:hover {
+  background-color: #edd;
+}
+#role {
+}
+#pattern {
+}

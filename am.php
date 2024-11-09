@@ -98,6 +98,12 @@ const REMEMBER = 18;
 const ASSUME = 19;
 const FEED = 20;
 const FEEDPH = 21;
+const PROVIDING = 22;
+const PROJNAME = 23;
+const GROUPNAME = 24;
+const PROMPT = 25;
+const PROVPROMPT = 26;
+const EXAMPROMPT = 27;
 
 $languages = [
   'en' => [

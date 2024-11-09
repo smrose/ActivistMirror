@@ -351,8 +351,11 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
   <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
   <div id="dev">DEVELOPER</div>
+  <div id="sugg">Suggestions saved.</div>
 
   <script>
+    sugg = document.querySelector('#sugg')
+    sugg.style.display = 'none'
     twotwo = document.querySelector('#twotwo')
     imgs = twotwo.querySelectorAll('img')
     for(img of imgs) {

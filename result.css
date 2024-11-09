@@ -87,3 +87,15 @@
   border: 1px solid tan;
   padding: 2px;
 }
+#sugg {
+    display: none;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 40vh;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: yellow;
+    color: red;
+    padding: 5px;
+    max-width: fit-content;
+}

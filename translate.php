@@ -14,7 +14,7 @@
  *  GetRoles         return roles
  *  GetPatterns      return patterns
  *  Choose           select languages and item type
- *  NewString        create a new string in locals or verbiage
+ *  NewString        present a form for adding a new string
  *  ManageLanguages  add and edit supported languages
  *  ManageTranslators edit the translators
  *  Locals           fetch strings of this type and language
@@ -482,14 +482,15 @@ function Translate($opts) {
         ? ($source['pattern'] ? $source['patname'] : 'none matched')
         : 'n/a';
       $placeholder = " placeholder=\"role: {$source['rolename']}  pattern: $pattern\"";
+      $title = "Role: $k, Pattern: $pattern";
     } else {
       $k = $source['object_id'];
       $ovalue = $source['localstring'];
       $value = (isset($destinations[$k])) ? $destinations[$k]['localstring'] : '';
       $placeholder = '';
+      $title = "ID: $k";
     }
-
-    print "<div class=\"mute\">$ovalue</div>
+    print "<div class=\"mute\" title=\"$title\">$ovalue</div>
   <div><textarea name=\"$k\" style=\"width: 100%\"$placeholder>$value</textarea></div>
   ";
   } // end loop on elements
@@ -560,7 +561,7 @@ function Absorb($opts) {
               'role' => $role,
               'pattern' => $pattern,
               'language' => $opts['destination'],
-	      'translator' => $user['id']
+              'translator' => $user['id']
             ]);
           else
             UpdateLocal([
@@ -568,7 +569,7 @@ function Absorb($opts) {
               'object_id' => $object_id,
               'itemtype' => $opts['itemtype'],
               'language' => $opts['destination'],
-	      'translator' => $user['id']
+              'translator' => $user['id']
               ]);
           $updates++;
         } else {
@@ -1094,7 +1095,7 @@ function DeleteTranslator($userid, $lcode) {
  *  Create a new string.
  */
 
-function CreateString2($itemtype) {
+function CreateString($itemtype) {
   global $con;
   
   $sth = $con->prepare('SELECT max(object_id) FROM locals WHERE itemtype = ?');
@@ -1123,104 +1124,7 @@ function CreateString2($itemtype) {
   <title>Activist Mirror Translation</title>
   <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Paytone+One&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Piazzolla:ital,opsz,wght@0,8..30,100..900;1,8..30,100..900&display=swap" rel="stylesheet">
-  <style>
-    body {
-      background-image: url("img/SummerWinter1.png");
-      font-family: "Inria Sans", sans-serif;
-    }
-    .challah {
-      display: grid;
-      grid-template-columns: repeat(2, auto);
-      grid-column-gap: .5vw;
-      width: max-content;
-      border: 2px solid #666;
-      margin-left: 1em;
-      background-color: rgb(240, 240, 240, 30%);
-    }
-    .mute {
-    }
-    .challah div {
-      padding: .2em;
-    }
-    .chead {
-      text-align: right;
-      font-weight: bold;
-    }
-    .csub {
-      text-align: center;
-      grid-column: span 2;
-    }
-    .tform {
-      display: grid;
-      grid-template-columns: repeat(2, auto);
-      width: max-content;
-      border: 2px solid #666;
-      background-color: rgb(240, 240, 240, 30%);
-      margin-left: 1em;
-    }
-    .tform div {
-      padding: .2em;
-    }
-    .thead {
-      text-align: center;
-      font-weight: bold;
-    }
-    .tfield {
-      text-align: right;
-      font-weight: bold;
-    }
-    .tforms {
-      text-align: center;
-      grid-column: span 2;
-    }
-    #brand {
-      font-family: "Archivo Black", sans-serif;
-      font-size: 5vw;
-      font-weight: 800;
-      position: fixed;
-      bottom: 1vh;
-      left: 1vh;
-      width: auto;
-      color: rgb(0,0,0,20%);
-      text-align: center;
-      z-index: -1;
-    }
-    .a {
-      transform: scale(-1,1);
-      display: inline-block;
-    }
-    .alert {
-      font-weight: 600;
-    }
-    .cronut {
-      display: grid;
-      grid-template-columns: repeat(2, 50%);
-      background-color: rgb(0,0,0,10%);
-      padding: .5em;
-    }
-    .cronut div {
-      margin: .1em;
-      padding: .1em;
-      background-color: rgb(240, 240, 240, 60%);
-    }
-    .sub {
-      text-align: center;
-      grid-column: span 2;
-    }
-    .sub input {
-      font-weight: 600;
-      background-color: #dcc;
-      border: 2px solid tan;
-    }
-    .sub input:hover {
-      background-color: #edd;
-    }
-    #role {
-    }
-    #pattern {
-    }
-  </style>
-  
+  <link rel="stylesheet" href="translate.css">  
   <script>
     function isverb(event) {
       if(news.value == verbiage) {
@@ -1329,12 +1233,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
          Error("Verbiage entries must be unique across role and pattern");
        else
          InsertVerbiage([
-	   'vstring' => '',
-	   'role' => $role,
-	   'pattern' => $pattern,
-	   'language' => 'en'
-	 ]);
-	 print "<p class=\"alert\">Added a row to the <code>verbiage</code> table.</p>\n";
+           'vstring' => '',
+           'role' => $role,
+           'pattern' => $pattern,
+           'language' => 'en'
+         ]);
+         print "<p class=\"alert\">Added a row to the <code>verbiage</code> table.</p>\n";
     } else {
        $itemtype = $_POST['itemtype'];
        CreateString($itemtype);

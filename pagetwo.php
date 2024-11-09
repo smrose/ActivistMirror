@@ -15,6 +15,12 @@ $aversion = date('H:i:s d/m/Y', filectime('.git/index'));
 DataStoreConnect();
 $next = LocalString($language, MESSAGES, NEXT);
 $Based = LocalString($language, MESSAGES, INSTRUCTIONS);
+$providing = LocalString($language, MESSAGES, PROVIDING);
+$project = LocalString($language, MESSAGES, PROJNAME);
+$group = LocalString($language, MESSAGES, GROUPNAME);
+$prompt = LocalString($language, MESSAGES, PROMPT);
+$provprompt = LocalString($language, MESSAGES, PROVPROMPT);
+$examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -42,38 +48,24 @@ $Based = LocalString($language, MESSAGES, INSTRUCTIONS);
    <?=$Based?>
   </div>
   <div>
+    <div class="fh"><?=$providing?></div>
     <div class="fh">
-      Providing a group and/or project name, actual or hypothetical, can be
-      useful for individual or collaborative work.
-    </div>
-    <div class="fh">
-      1. Group Name:
+      1. <?=$group?>:
     </div>
     <div>
       <input type="text" name="group" size="40">
     </div>
     <div class="fh">
-      2. Project Name:
+      2. <?=$project?>:
     </div>
     <div>
       <input type="text" name="project">
     </div>
  </div>
  <div>
-   <div class="fh">
-     Providing a prompt can be useful in considering your answers to the
-     Activist Mirror questions. It can also be important if other people
-     working with you will be answering the Activist Mirror.
-   </div>
-   <div class="fh">
-     Example: As Chair of the Community Committee of a environmental
-     action group in Seattle, I'd like to better understand what my role
-     might be in developing projects and how patterns from the Liberating
-     Voices pattern language could help me in that role.
-   </div>
-   <div class="fh">
-     3. Prompt:
-   </div>
+   <div class="fh"><?=$provprompt?></div>
+   <div class="fh"><?=$examprompt?></div>
+   <div class="fh">3. <?=$prompt?>:</div>
    <div>
      <textarea name="prompt" rows="3" cols="80"></textarea>
    </div>
