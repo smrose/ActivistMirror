@@ -13,6 +13,12 @@ include "am.php";
 $dev = Dev();
 $aversion = date('H:i:s d/m/Y', filectime('.git/index'));
 DataStoreConnect();
+$language = (isset($_REQUEST['language']))
+  ? $_REQUEST['language']
+  : 'en';
+$langinput = ($language == 'en')
+  ? ''
+  : "<input type=\"hidden\" name=\"language\" value=\"$language\">\n";
 $next = LocalString($language, MESSAGES, NEXT);
 $Based = LocalString($language, MESSAGES, INSTRUCTIONS);
 $providing = LocalString($language, MESSAGES, PROVIDING);
@@ -23,7 +29,7 @@ $provprompt = LocalString($language, MESSAGES, PROVPROMPT);
 $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?=$lang?>">
 <head>
   <title>Playing the Activist Mirror</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,6 +49,7 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
 </div>
 
 <form method="POST" action="form.php">
+<?=$langinput?>
 <div id="twocol">
   <div id="bothcol">
    <?=$Based?>

@@ -104,6 +104,9 @@ const GROUPNAME = 24;
 const PROMPT = 25;
 const PROVPROMPT = 26;
 const EXAMPROMPT = 27;
+const ALLTYPES = 28;
+const WHATKIND = 29;
+const BEGIN = 30;
 
 $languages = [
   'en' => [
