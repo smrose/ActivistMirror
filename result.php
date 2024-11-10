@@ -391,7 +391,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
     selcont = document.querySelector('#selcont')
 <?php
   if(!isset($session['dev']))
-    print("dev.style.display = 'none'; selcont.style.display = 'none'");
+    print "    dev.style.display = 'none'; selcont.style.display = 'none'\n";
   print "    rando = {$thisSession['rando']}
     session_id = {$thisSession['session_id']}
 ";
