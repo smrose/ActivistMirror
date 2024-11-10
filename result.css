@@ -13,11 +13,11 @@
     text-align: center;
 }
 #reveal {
-	font-weight: 700;
+    font-weight: 700;
     font-size: 1.4vw;
 }
 #role {
-	font-weight: 700;
+    font-weight: 700;
     font-size: 3vw;
     margin-bottom: 2vh;
 }
@@ -32,7 +32,7 @@
     margin-right: auto;
 }
 #patterns {
-  padding-right: 1vw;
+    padding-right: 1vw;
 }
 #twotwo {
     display: grid;
@@ -41,12 +41,12 @@
     row-gap: .4vh;
 }
 #verbiage {
-  margin-top: 2em;
+    margin-top: 2em;
 }
 #remember {
 }
 #deets {
-	text-align: right;
+    text-align: right;
     font-size: 1vw;
     margin-bottom: 1vh;
     margin-right: 1vw;
@@ -55,47 +55,69 @@
     margin: auto;
 }
 #feed {
-  border: 1px solid #bbb;
-  width: max-content;
-  position: relative;
-  margin: auto;
+    border: 1px solid #bbb;
+    width: max-content;
+    position: relative;
+    margin: auto;
 }
 #feedh {
-  margin-top: 2em;
+    margin-top: 2em;
 }
 #sub {
-  background-color: #833;
-  color: white;
-  border: 1px solid #555;
-  border-radius: 8px;
-  position: absolute;
-  right: 4px;
-  bottom: 4px;
-  font-weight: 500;
+    background-color: #833;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 8px;
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    font-weight: 500;
+}
+#sub:hover {
+    background-color: #c66;
+    box-shadow: 1px 1px 1px tan;
 }
 #ta {
-  border: none;
+    border: none;
 }
 #selcont {
-  position: fixed;
-  top: 0;
-  z-index: 1;
-  right: 0;
-  left: 0;
-  text-align: center;
-  background-color: rgb(240,255,240,50%);
-  border: 1px solid tan;
-  padding: 2px;
+    position: fixed;
+    top: 0;
+    z-index: 1;
+    right: 0;
+    left: 0;
+    text-align: center;
+    background-color: rgb(240,255,240,50%);
+    border: 1px solid tan;
+    padding: 2px;
 }
-#sugg {
-    display: none;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 40vh;
+#lert {
+    display: block;
+    opacity: 0;
+    top: 50vh;
+    left: 40vw;
     border: 1px solid black;
     border-radius: 10px;
     background-color: yellow;
     color: red;
     padding: 5px;
     max-width: fit-content;
+    position: absolute;
+    box-shadow: inset 0px 0px 2px grey, 0px 0px 5px grey;
+    font-weight: 800;
+    font-size: 20pt;
+}
+@keyframes fade-inout {
+    0% {
+	opacity: 0;
+    }
+    25% {
+	opacity: 1;
+    }
+    75% {
+	opacity: 1;
+    }
+    100% {
+	opacity: 0;
+    }
 }

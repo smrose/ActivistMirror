@@ -71,8 +71,13 @@ if (isset($_GET["language"])) {     // forgotten language var
 
 // SelectedQ[] contains the user input, if any, to the eight questions.
 
-for($i = 1; $i <= QCOUNT; $i++)
-  $SelectedQ[] = $_POST["q$i"] ? $_POST["q$i"] : NULL;
+for($i = 1; $i <= QCOUNT; $i++) {
+  $q = "q$i";
+  if(isset($_POST[$q]) && $_POST[$q])
+    $SelectedQ[] = $_POST[$q];
+  else
+    $SelectedQ[] = NULL;
+}
 
 Debug("\$SelectedQ[] = " . print_r($SelectedQ, TRUE), 3);
 
@@ -179,6 +184,12 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
   <link rel="stylesheet" href="result.css">
 
   <script>
+
+    /* card()
+     *
+     *  Manage click events on a pattern card.
+     */
+     
     function card(event) {
         id = event.target.id
         selector = '#' + id
@@ -190,13 +201,13 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
         div.innerHTML = '<a href="' + pattern + '" target="_blank"><img src="' + textCard + '"></a>'
     } // end card()
 
-
     /* subf()
      *
      *  Handle submission of suggestions by calling suggestion.php.
      */
 
     async function subf(event) {
+      lert.style.animation = 'fade-inout 3s'
       url = service + session_id
       suggestion = ta.value
 
@@ -211,6 +222,21 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
       response = await fetch(request)
 
     } // end subf()
+
+    /* rst()
+     *
+     *  Reset the animation on the suggestion button.
+     */
+
+    function rst(event) {
+	lert.style.animation = null
+	
+    } // end rst()
+
+    /* resetf()
+     *
+     *  Service the reset button on the developer toolbar.
+     */
 
     function resetf(event) {
       if(roleselect.value <= 0)
@@ -228,7 +254,10 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
     } // end resetf()
     
-    // called when a role is selected
+    /* roled()
+     *
+     * Called when a role is selected on the developer toolbar.
+     */
 
     function roled(event) {
 
@@ -245,7 +274,10 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
     } //end roled()
   
-    // called when a pattern selector changes
+    /* select()
+     *
+     *  Called when a pattern selector on developer toolbar changes.
+     */
 
     function select(event) {
       id = event.target.id
@@ -351,11 +383,11 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
   <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
   <div id="dev">DEVELOPER</div>
-  <div id="sugg">Suggestions saved.</div>
+  <div id="lert">Suggestions saved.</div>
 
   <script>
-    sugg = document.querySelector('#sugg')
-    sugg.style.display = 'none'
+    lert = document.querySelector('#lert')
+    lert.addEventListener('animationend', rst)
     twotwo = document.querySelector('#twotwo')
     imgs = twotwo.querySelectorAll('img')
     for(img of imgs) {
