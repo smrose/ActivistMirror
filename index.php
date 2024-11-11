@@ -111,6 +111,8 @@ $uid = time();
 
      function nl(event) {
        nlocation = '<?=$_SERVER['SCRIPT_NAME']?>?language=' + langsel.value
+       if(typeof qps !== 'undefined')
+         nlocation += '&' + qps
        document.location.assign(nlocation)
        
      } // end nl()
