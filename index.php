@@ -1,6 +1,15 @@
 <?php
+/* NAME
+ *
+ *  index.php
+ *
+ * CONCEPT
+ *
+ *  Entry page for the Activist Mirror.
+ */
 
 include "am.php";
+
 $debug = 2;
 $dev = Dev();
 $aversion = date('H:i:s d/m/Y', filectime('.git/index'));
@@ -8,6 +17,16 @@ $aversion = date('H:i:s d/m/Y', filectime('.git/index'));
 // Open connection with db
 
 DataStoreConnect();
+
+// We support passing a set of query parameters forward.
+
+$qps = '';
+foreach(['language', 'prompt', 'group', 'project'] as $qp) {
+  if(isset($_REQUEST[$qp])) {
+    $qps .= strlen($qps) ? '&' : '';
+    $qps .= "$qp={$_REQUEST[$qp]}";
+  }
+}
 
 /// set headers and flags based on language
  
@@ -17,7 +36,7 @@ if(isset($_GET["language"])) {     // if language var passed via url
   $language = "en";
 }
 
-// build a popup menu for language
+// build a popup menu, initially hidden, to allow users to select a language
 
 $langs = GetLanguages();
 $langsel = "<select name=\"language\" id=\"langsel\">\n";
@@ -29,7 +48,7 @@ foreach($langs as $lang) {
 }
 $langsel .= "</select>\n";
 
-// Get the application name from the database.
+// Get various strings from the 'locals' table.
 
 $title = LocalString($language, MESSAGES, TITLE);
 $ptitle = ($language == 'en')
@@ -62,10 +81,15 @@ $uid = time();
      *  Build a URL to pagetwo.php and assign it to document.location.
      */
 
-    function pagetwo() {
+    function pagetwo(event) {
         url = 'pagetwo.php'
-        if(typeof language !== 'undefined')
+        if(typeof language !== 'undefined') {
           url += '?language=' + language
+          if(typeof qps !== 'undefined')
+            url += '&' + qps
+        } else
+          if(typeof qps !== 'undefined')
+            url += '?' + qps
         location = document.location
         location.assign(url)
     } // end pagetwo()
@@ -127,7 +151,9 @@ $uid = time();
   if(!isset($dev))
     print "  dev.style.display = 'none'\n";
   if($language != 'en')
-    print " language = \"$language\"\n";
+    print "  language = \"$language\"\n";
+  if(strlen($qps))
+    print "  qps = \"$qps\"\n";
 ?>
 </script>
 

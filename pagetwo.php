@@ -13,6 +13,13 @@ include "am.php";
 $dev = Dev();
 $aversion = date('H:i:s d/m/Y', filectime('.git/index'));
 DataStoreConnect();
+
+// Query parameters possibly passed forward.
+
+foreach(['group', 'project', 'prompt'] as $QueryParam) {
+  $qp[$QueryParam] = isset($_REQUEST[$QueryParam]) ? $_REQUEST[$QueryParam] : '';
+}
+
 $language = (isset($_REQUEST['language']))
   ? $_REQUEST['language']
   : 'en';
@@ -60,13 +67,13 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
       1. <?=$group?>:
     </div>
     <div>
-      <input type="text" name="group" size="40">
+      <input type="text" name="group" value="<?=$qp['group']?>" size="40">
     </div>
     <div class="fh">
       2. <?=$project?>:
     </div>
     <div>
-      <input type="text" name="project">
+      <input type="text" value="<?=$qp['project']?>" name="project">
     </div>
  </div>
  <div>
@@ -74,7 +81,7 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
    <div class="fh"><?=$examprompt?></div>
    <div class="fh">3. <?=$prompt?>:</div>
    <div>
-     <textarea name="prompt" rows="3" cols="80"></textarea>
+     <textarea name="prompt" rows="3" cols="80"><?=$qp['prompt']?></textarea>
    </div>
  </div>
 </div>
