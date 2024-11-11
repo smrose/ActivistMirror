@@ -8,7 +8,7 @@ body {
   grid-column-gap: .5vw;
   width: max-content;
   border: 2px solid #666;
-  margin-left: 1em;
+  margin-left: 2em;
   background-color: rgb(240, 240, 240, 30%);
 }
 .mute {
@@ -30,7 +30,7 @@ body {
   width: max-content;
   border: 2px solid #666;
   background-color: rgb(240, 240, 240, 30%);
-  margin-left: 1em;
+  margin-left: 2em;
 }
 .tform div {
   padding: .2em;
@@ -82,14 +82,31 @@ body {
   grid-column: span 2;
 }
 .sub input {
-  font-weight: 600;
-  background-color: #dcc;
-  border: 2px solid tan;
+    font-weight: 600;
+    background-color: #dcc;
+    border: 2px solid tan;
 }
 .sub input:hover {
-  background-color: #edd;
+    background-color: #edd;
 }
 #role {
 }
 #pattern {
+}
+.rugelach {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    grid-column-gap: .5vw;
+    width: max-content;
+    border: 2px solid #666;
+    margin-left: 2em;
+    background-color: rgb(240, 240, 240, 30%);
+}
+.rugelach div {
+    text-align: center;
+    padding: .2em;
+}
+.rsub {
+  text-align: center;
+  grid-column: span 3;
 }

@@ -38,6 +38,7 @@
  *  Mode()               DESKTOP or MOBILE
  *  Dev()                value of the 'dev' cookie; NULL if it doesn't exist
  *  Verbiage()           fetch a row from the verbiage table
+ *  GetLanguages()       return the supported languages
  */
 
 const MODE_THRESHOLD = 1000;
@@ -107,24 +108,8 @@ const EXAMPROMPT = 27;
 const ALLTYPES = 28;
 const WHATKIND = 29;
 const BEGIN = 30;
+const LANGSEL = 31;
 
-$languages = [
-  'en' => [
-    'active' => false,
-    'flag' => 'en-lang-flag.small.png',
-    'longlang' => 'English language'
-  ],
-  'es' => [
-    'active' => false,
-    'flag' => 'es-lang-flag.small.png',
-    'longlang' => ' lengua española'
-  ],
-  'it' => [
-    'active' => false,
-    'longlang' => 'lingua Italiana',
-    'flag' => 'it-lang-flag.small.png'
-  ]
-];
 
 /* Debug()
  *
@@ -646,3 +631,42 @@ function Verbiage($role, $pattern = NULL, $language) {
     return(Verbiage($role, $pattern, 'en'));
 
 } /* end Verbiage() */
+
+
+/* GetLanguages()
+ *
+ *  Fetch associative arrays for all or one language specified by 'code' from
+ *
+ *   CREATE TABLE language(
+ *    code char(2) NOT NULL PRIMARY KEY,
+ *    description varchar(80) NOT NULL,
+ *    active int(1) NOT NULL DEFAULT 0
+ *   );
+ *
+ *  augmented by the number of strings in that language as 'count'.
+ */
+
+function GetLanguages($code = null) {
+  global $con;
+
+  $sql = 'SELECT code, description, active, COUNT(*) AS count
+ FROM locals l
+  JOIN language la ON l.language = la.code
+ WHERE language IS NOT NULL'
+ . (isset($code) ? ' AND code = ?' : '')
+ . ' GROUP BY language ORDER BY description';
+
+  $sth = $con->prepare($sql);
+  if(isset($code))
+    $sth->bind_param('s', $code);
+  $sth->execute();
+  $res = $sth->get_result();
+  if(isset($code)) {
+    return($res->fetch_assoc());
+  } else {
+    while($language = $res->fetch_assoc())
+      $languages[$language['code']] = $language;
+    return($languages);
+  }
+  
+} /* end GetLanguages() */

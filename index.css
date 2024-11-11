@@ -43,3 +43,28 @@ h1 {
 .wk {
     font-size: 20pt;
 }
+#sl {
+    position: fixed;
+    bottom: 5vh;
+    left: 10vw;
+}
+#sl button {
+    color: white;
+    padding: .1em;
+    background-color: #71a78c;
+    border: 1px solid #666;
+    border-radius: 15px;
+    font-size: 15pt;
+    font-weight: bold;
+    padding-right: 2em;
+    padding-left: 2em;
+}
+#sl button:hover {
+    background-color: #95bda9;
+}
+#langsel {
+    display: none;
+    position: fixed;
+    bottom: 5vh;
+    left: 10vw;
+}

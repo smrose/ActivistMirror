@@ -17,6 +17,18 @@ if(isset($_GET["language"])) {     // if language var passed via url
   $language = "en";
 }
 
+// build a popup menu for language
+
+$langs = GetLanguages();
+$langsel = "<select name=\"language\" id=\"langsel\">\n";
+foreach($langs as $lang) {
+  if($lang['active']) {
+    $selected = ($lang['code'] == 'en') ? ' selected' : '';
+    $langsel .= " <option value=\"{$lang['code']}\"$selected>{$lang['description']}</option>\n";
+  }
+}
+$langsel .= "</select>\n";
+
 // Get the application name from the database.
 
 $title = LocalString($language, MESSAGES, TITLE);
@@ -27,6 +39,7 @@ $submitLabel = LocalString($language, MESSAGES, SUBMITLABEL);
 $allTypes = LocalString($language, MESSAGES, ALLTYPES);
 $whatKind = LocalString($language, MESSAGES, WHATKIND);
 $begin =  LocalString($language, MESSAGES, BEGIN);
+$lang_sel = LocalString($language, MESSAGES, LANGSEL);
 $instructions = '<p class="nlead">' . implode("</p>\n<p class=\"nlead\">", explode("\n", LocalString($language, MESSAGES, INSTRUCTIONS))) . "</p>\n";
 
 $uid = time();
@@ -41,7 +54,14 @@ $uid = time();
  <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Paytone+One&display=swap" rel="stylesheet">
  <link rel="stylesheet" href="surveyStyle.css">
  <link rel="stylesheet" href="index.css">
+
   <script>
+
+    /* pagetwo()
+     *
+     *  Build a URL to pagetwo.php and assign it to document.location.
+     */
+
     function pagetwo() {
         url = 'pagetwo.php'
         if(typeof language !== 'undefined')
@@ -49,8 +69,32 @@ $uid = time();
         location = document.location
         location.assign(url)
     } // end pagetwo()
+
+    /* sl()
+     *
+     *  Expose the popup menu for selecting a language.
+     */
+     
+    function sl() {
+      slel.style.display = 'none'
+      langsel.style.display = 'block'
+    } // end sl()
+
+    /* nl()
+     *
+     *  Called when a language is selected from the popup to set the location.
+     */
+
+     function nl(event) {
+       nlocation = '<?=$_SERVER['SCRIPT_NAME']?>?language=' + langsel.value
+       document.location.assign(nlocation)
+       
+     } // end nl()
+
   </script>
+
 </head>
+
 <body>
 <h1><?=$ptitle?></h1>
 
@@ -60,17 +104,28 @@ $uid = time();
  <div class="ak"><?=$allTypes?></div>
  <div class="wk"><?=$whatKind?></div>
 </div>
+
 <div id="lz">
   <button><?=$begin?></button>
 </div>
 
+<div id="sl">
+ <button><?=$lang_sel?></button>
+</div>
+<?=$langsel?>
+
 <script>
   lz = document.querySelector('#lz')
   lz.addEventListener('click', pagetwo)
+  slel = document.querySelector('#sl')
+  slel.addEventListener('click', sl)
+  langsel = document.querySelector('#langsel')
+  langsel.style.display = 'none'
+  langsel.addEventListener('change', nl)
   dev = document.querySelector('#dev')
 <?php
   if(!isset($dev))
-    print " dev.style.display = 'none'\n";
+    print "  dev.style.display = 'none'\n";
   if($language != 'en')
     print " language = \"$language\"\n";
 ?>

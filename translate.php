@@ -10,13 +10,10 @@
  * FUNCTIONS
  *
  *  ItemTypes        return a list of all the itemtypes
- *  GetLanguages     return a list of supported languages
  *  GetRoles         return roles
  *  GetPatterns      return patterns
  *  Choose           select languages and item type
  *  NewString        present a form for adding a new string
- *  ManageLanguages  add and edit supported languages
- *  ManageTranslators edit the translators
  *  Locals           fetch strings of this type and language
  *  AllVerbiage      fetch verbiage in the argument language
  *  Error            fail in disgrace
@@ -37,6 +34,9 @@
  *  InsertTranslator insert a translator record
  *  DeleteTranslator delete a translator record
  *  CreateString     create a new 'en' string in locals
+ *  UpdateLanguage   set language.active
+ *  Languages        offer a form for setting language.active
+ *  ActiveLanguage   process form input from Languages()
  *
  * NOTES
  *
@@ -132,38 +132,6 @@ function ItemTypes($itemtype_id = null) {
   return $itemtypes;
 
 } /* end ItemTypes() */
-
-
-/* GetLanguages()
- *
- *  If 'code' is specified, return a single array with 'code' and
- *  'description' fields, else a list of all the languages that are
- *  currently supported as an array keyed on 'code'.
- */
-
-function GetLanguages($code = null) {
-  global $con;
-
-  $sql = 'SELECT * FROM language';
-  if(isset($code))
-    $sql .= ' WHERE code = ?';
-  else
-    $sql .= ' ORDER BY description';
-  $sth = $con->prepare($sql);
-  if(isset($code))
-    $sth->bind_param('s', $code);
-  $sth->execute();
-  $res = $sth->get_result();
-  if(isset($code)) {
-    return($res->fetch_assoc());
-  } else {
-    $languages = [];
-    while($language = $res->fetch_assoc())
-      $languages[$language['code']] = $language;
-    return($languages);
-  }
-
-} /* end GetLanguages() */
 
 
 /* GetRoles()
@@ -287,11 +255,10 @@ function Choose($langs) {
  */
 
 function NewString() {
-
   $itemtypes = ItemTypes(); // itemtype_id, itemtype
   $roles = GetRoles();
   $patterns = GetPatterns();
-  
+  $defaultItem = '';
 
   $rolesel = "<select name=\"role\" id=\"role\" disabled>\n";
   foreach($roles as $role)
@@ -336,26 +303,6 @@ type.</p>
 ";
 
 } // end NewString()
-
-
-/* ManageLanguages()
- *
- *  Add or edit supported languages.
- */
- 
-function ManageLanguages() {
-  
-} /* end ManageLanguages() */
-
-
-/* ManageTranslators()
- *
- *  Manage translators.
- */
- 
-function ManageTranslators() {
-  
-} /* end ManageTranslators() */
 
 
 /* Locals()
@@ -709,8 +656,8 @@ function UpdateLocal($opt) {
                   $opt['localstring'],
                   $opt['translator'],
                   $opt['object_id'],
-                    $opt['itemtype'],
-                    $opt['language']);
+                  $opt['itemtype'],
+                  $opt['language']);
  $sth->execute();
  $sth->close();
 
@@ -971,6 +918,7 @@ function Users($userid = NULL, $super = NULL) {
 </form>
 ";
   }
+  
 } // end Users()
 
 
@@ -1116,6 +1064,94 @@ function CreateString($itemtype) {
 } // end CreateString()
 
 
+/* UpdateLanguage()
+ *
+ *  Set language.active for the argument language.
+ */
+
+function UpdateLanguage($code, $active) {
+  global $con;
+
+  $sth = $con->prepare('UPDATE language SET active = ? WHERE code = ?');
+  $sth->bind_param('is', $active, $code);
+  $sth->execute();
+
+} // end UpdateLanguage()
+
+
+function Languages() {
+  $languages = GetLanguages();
+
+  print "<h2>Manage Languages</h2>
+
+<p style=\"font-weight: bold\">Superusers control which languages are offered
+to users in this form. The <code>coverage</code> value shows what percentage of
+strings are translated for the language.</p>
+
+<form class=\"rugelach\" method=\"POST\">
+
+ <div class=\"chead\">Language</div>
+ <div class=\"chead\">Coverage</div>
+ <div class=\"chead\">Active</div>
+";
+
+  $maxcount = $languages['en']['count'];
+  
+  foreach($languages as $language) {
+    $checked = $language['active'] ? ' checked' : '';
+    $disabled = ($language['code'] == 'en') ? ' disabled' : '';
+    $coverage = sprintf('%.0f%%',
+      $language['count']/$maxcount * 100);
+    print " <div>
+  {$language['description']}
+ </div>
+ <div>$coverage</div>
+ <div>
+  <input type=\"checkbox\" name=\"{$language['code']}\" value=\"1\"$checked$disabled>
+ </div>
+";
+  } // end loop on languages
+
+  print " <div class=\"rsub\">
+ <input type=\"hidden\" name=\"state\" value=\"activel\">
+ <input type=\"submit\" name=\"activel\" value=\"Set\">
+ </div>
+</form>
+";
+
+} // end Languages()
+
+
+/* ActiveLanguage()
+ *
+ *  Setting language.active from form input.
+ */
+
+function ActiveLanguage() {
+  global $con;
+  
+  $languages = GetLanguages();
+
+  $count = 0;
+  foreach($languages as $language) {
+    $code = $language['code'];
+    if($code == 'en')
+      continue;
+    $oldstate = $language['active'];
+    $newstate = isset($_POST[$code]) ? 1 : 0;
+    if($newstate != $oldstate) {
+      $count++;
+      UpdateLanguage($code, $newstate);
+      print "<p style=\"font-weight: bold\">Set <code>{$language['description']}</code> to " .
+        ($newstate ? 'active' : 'inactive') . "</p>\n";
+    }
+  }
+  if(!$count)
+    print "<p style=\"font-weight: bold\">No changes.</p>\n";
+    
+} // end ActiveLanguage()
+
+
 ?>
 <!DOCTYPE html>
 <html> 
@@ -1253,7 +1289,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
     // Absorb a new user.
       
     Users($_POST['userid'], $_POST['super']);
-  }      
+  } elseif($_POST['state'] == 'activel') {
+
+    // Setting language.active from form input.
+
+    ActiveLanguage();
+  }
 }
 
 if(!$rv) {
@@ -1262,6 +1303,7 @@ if(!$rv) {
   if($user['super']) { // superusers create and assign translators
     Translators();
     Users();
+    Languages();
   }
 }
 ?>
