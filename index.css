@@ -1,0 +1,45 @@
+body {
+    background-image: url("img/SummerWinter.png");
+    font-family: Inter, sans-serif;
+}
+h1 {
+    font-family: "Archivo Black", sans-serif;
+    text-align: center;
+    font-size: 5vw;
+    position: relative;
+    top: 50px;
+}
+.blur {
+    padding: 20px;
+    backdrop-filter: blur(8px);
+    background-color: rgb(255 255 255 / 20%);
+    text-align: center;
+    position: relative;
+    top: 150px;
+}
+#lz {
+    position: relative;
+    top: 250px;
+    text-align: center;
+}
+#lz button {
+    color: white;
+    padding: .1em;
+    background-color: #71a78c;
+    border: 1px solid #666;
+    border-radius: 15px;
+    font-size: 30pt;
+    font-weight: bold;
+    padding-right: 2em;
+    padding-left: 2em;
+}
+#lz button:hover {
+    background-color: #95bda9;
+}
+.ak {
+    font-size: 20pt;
+    font-weight: 400;
+}
+.wk {
+    font-size: 20pt;
+}
