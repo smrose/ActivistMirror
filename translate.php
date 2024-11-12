@@ -801,8 +801,11 @@ function GetUsers() {
 
 function GetUser($username) {
   global $con;
-  
-  if($r = $con->execute_query('SELECT * FROM translator WHERE userid = ?', [$username]))
+
+  $sth = $con->prepare('SELECT * FROM translator WHERE userid = ?');
+  $sth->bind_param('s', $username);
+  $sth->execute();
+  if($r = $sth->get_result())
     $translator = $r->fetch_assoc();
   return($translator);
 
