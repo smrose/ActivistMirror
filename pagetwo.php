@@ -64,13 +64,13 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
   <div>
     <div class="fh"><?=$providing?></div>
     <div class="fh">
-      1. <?=$group?>:
+      <?=$group?>:
     </div>
     <div>
       <input type="text" name="group" value="<?=$qp['group']?>" size="40">
     </div>
     <div class="fh">
-      2. <?=$project?>:
+      <?=$project?>:
     </div>
     <div>
       <input type="text" value="<?=$qp['project']?>" name="project">
@@ -79,7 +79,7 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
  <div>
    <div class="fh"><?=$provprompt?></div>
    <div class="fh"><?=$examprompt?></div>
-   <div class="fh">3. <?=$prompt?>:</div>
+   <div class="fh"><?=$prompt?>:</div>
    <div>
      <textarea name="prompt" rows="3" cols="80"><?=$qp['prompt']?></textarea>
    </div>

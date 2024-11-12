@@ -196,8 +196,7 @@ function Choose($langs) {
       $defaultSource = 'en';
     if(isset($_POST['destination']))
       $defaultDest = $_POST['destination'];
-    if(isset($_POST['itemtype']))
-      $defaultItem = $_POST['itemtype'];
+    $defaultItem = isset($_POST['itemtype']) ? $_POST['itemtype'] : '';
   }
 
   foreach($languages as $language) {
