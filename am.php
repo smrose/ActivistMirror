@@ -264,16 +264,17 @@ function RecordSession($session) {
     'project' => NULL,
     'prompt' => NULL,
     'dev' => NULL,
+    'version' => NULL
   ];
 
   foreach($session as $column => $value)
     $param[$column] = $value;
   $param['rando'] = mt_rand();
 
-  $sth = $con->prepare("INSERT INTO sessions(uid, language, `group`, project, prompt, dev, rando) VALUES(?, ?, ?, ?, ?, ?, ?)");
-  $sth->bind_param('isssssi', $param['uid'], $param['language'],
+  $sth = $con->prepare("INSERT INTO sessions(uid, language, `group`, project, prompt, dev, rando, version) VALUES(?, ?, ?, ?, ?, ?, ?, ?)");
+  $sth->bind_param('isssssis', $param['uid'], $param['language'],
                    $param['group'], $param['project'], $param['prompt'],
-		   $param['dev'], $param['rando']);
+		   $param['dev'], $param['rando'], $param['version']);
   $sth->execute();
   $sth->close();
   

@@ -21,7 +21,7 @@ DataStoreConnect();
 // We support passing a set of query parameters forward.
 
 $qps = '';
-foreach(['language', 'prompt', 'group', 'project'] as $qp) {
+foreach(['language', 'prompt', 'group', 'project', 'version'] as $qp) {
   if(isset($_REQUEST[$qp])) {
     $qps .= strlen($qps) ? '&' : '';
     $qps .= "$qp={$_REQUEST[$qp]}";

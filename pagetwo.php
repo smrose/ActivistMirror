@@ -16,7 +16,7 @@ DataStoreConnect();
 
 // Query parameters possibly passed forward.
 
-foreach(['group', 'project', 'prompt'] as $QueryParam) {
+foreach(['group', 'project', 'prompt', 'version'] as $QueryParam) {
   $qp[$QueryParam] = isset($_REQUEST[$QueryParam]) ? $_REQUEST[$QueryParam] : '';
 }
 
@@ -26,6 +26,9 @@ $language = (isset($_REQUEST['language']))
 $langinput = ($language == 'en')
   ? ''
   : "<input type=\"hidden\" name=\"language\" value=\"$language\">\n";
+$versioninput = strlen($qp['version'])
+  ? "<input type=\"hidden\" name=\"version\" value=\"{$qp['version']}\">\n"
+  : '';
 $next = LocalString($language, MESSAGES, NEXT);
 $Based = LocalString($language, MESSAGES, INSTRUCTIONS);
 $providing = LocalString($language, MESSAGES, PROVIDING);
@@ -57,6 +60,7 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
 
 <form method="POST" action="form.php">
 <?=$langinput?>
+<?=$versioninput?>
 <div id="twocol">
   <div id="bothcol">
    <?=$Based?>

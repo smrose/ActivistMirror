@@ -93,7 +93,7 @@ $session = [
   'uid' => $uid,
   'language' => $language
   ];
-foreach(['group', 'project', 'prompt'] as $meta)
+foreach(['group', 'project', 'prompt', 'version'] as $meta)
   if(isset($_POST[$meta]) && strlen($_POST[$meta]))
     $session[$meta] = $_POST[$meta];
 if((Dev() !== NULL))

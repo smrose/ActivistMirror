@@ -31,6 +31,10 @@ if(isset($_GET["language"])) {     // forgotten language var
 } else { 
   $language = "en"; 
 }
+$qps = '';
+foreach(['language', 'prompt', 'group', 'project', 'version'] as $qp)
+  if(isset($_REQUEST[$qp]) && strlen($_REQUEST[$qp]))
+    $qps .= "<input type=\"hidden\" name=\"$qp\" value=\"{$_REQUEST[$qp]}\">\n";
 
 // increment or initialize page number (and hence question and answers)
 
@@ -94,7 +98,10 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
 <div id="qgrid">
   <div id="dog">
    <?=$question?>
+
    <form method="POST" action="<?=$action?>">
+
+     <?=$qps?>
      <div id="fc">
 <?php
 
@@ -110,9 +117,6 @@ for($pn = 1; $pn < $page; $pn++)
   echo "<input type=\"hidden\" name=\"q$pn\" value=\"{$_POST["q$pn"]}\">\n";
 
 ?>
-      <input type="hidden" name="group" value="<?=$_POST['group']?>">
-      <input type="hidden" name="project" value="<?=$_POST['project']?>">
-      <input type="hidden" name="prompt" value="<?=$_POST['prompt']?>">
       <input type="hidden" name="page" value="<?=$page?>">
       <input type="hidden" name="language" value="<?=$language?>">
       <input type="hidden" name="uid" value="<?=$uid?>">
