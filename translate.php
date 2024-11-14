@@ -331,7 +331,15 @@ function Locals($itemtype, $language) {
 
 /* AllVerbiage()
  *
- *  Return rows from 'verbiage' in the argument language.
+ *  Return rows from 'verbiage' in the argument language. What we return
+ *  is an array of arrays, sorted on role and pattern, with these fields:
+ *
+ *     vstring  string
+ *        role  numeric role id
+ *     pattern  numeric id
+ *    rolename  roles.name
+ *     patname  pattern.title
+ *
  */
  
 function AllVerbiage($language) {
@@ -425,10 +433,17 @@ function Translate($opts) {
       $ovalue = $source['vstring'];
       $value = (isset($destinations[$k])) ? $destinations[$k]['vstring'] : '';
       $pattern = isset($source['pattern'])
-        ? ($source['pattern'] ? $source['patname'] : 'none matched')
+        ? ($source['pattern']
+	   ? "{$source['patname']} ({$source['pattern']})"
+	   : 'none matched')
         : 'n/a';
       $placeholder = " placeholder=\"role: {$source['rolename']}  pattern: $pattern\"";
-      $title = "Role: $k, Pattern: $pattern";
+      $title = "Role: {$source['rolename']} ({$source['role']}) , Pattern: $pattern";
+      $old = "<div>
+ <div class=\"label\">$title</div>
+ <div>$ovalue</div>
+</div>
+";
     } else {
       $k = $source['object_id'];
       $ovalue = $source['localstring'];
@@ -436,7 +451,10 @@ function Translate($opts) {
       $placeholder = '';
       $title = "ID: $k";
     }
-    print "<div class=\"mute\" title=\"$title\">$ovalue</div>
+    print "  <div>
+   <div class=\"label\">$title</div>
+   <div>$ovalue</div>
+  </div>
   <div><textarea name=\"$k\" style=\"width: 100%\"$placeholder>$value</textarea></div>
   ";
   } // end loop on elements

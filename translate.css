@@ -72,7 +72,7 @@ body {
   background-color: rgb(0,0,0,10%);
   padding: .5em;
 }
-.cronut div {
+.cronut > div {
   margin: .1em;
   padding: .1em;
   background-color: rgb(240, 240, 240, 60%);
@@ -107,6 +107,11 @@ body {
     padding: .2em;
 }
 .rsub {
-  text-align: center;
-  grid-column: span 3;
+    text-align: center;
+    grid-column: span 3;
+}
+.label {
+    background-color: grey;
+    color: white;
+    width: 100%;
 }
