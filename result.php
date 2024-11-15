@@ -21,25 +21,39 @@ function RoleBar() {
   // Fetch the role and pattern names.
 
   $rnames = LocalString('en', ROLE_NAMES, 1, TOPPATS);
+
   $pnames = LocalString('en', PATTERN_TITLES, 1, PATCOUNT);
 
   // Build a SELECT form element for role selection.
 
+  $rs = isset($_REQUEST['role']) ? $_REQUEST['role'] : 0;
   $roleSelect = "<select name=\"role\" id=\"roleselect\">
-   <option value=\"0\">Select a role</option>";
+ <option value=\"0\">Select a role</option>
+";
+
   for($i = 1; $i <= ROLES; $i++) {
-    $roleSelect .= " <option value=\"$i\" title=\"$i\">{$rnames[$i-1]}</option>\n";
+    $roleSelect .= " <option value=\"$i\"" .
+      (($rs == $i) ? ' selected' : '') .
+      ">{$rnames[$i-1]}</option>\n";
   }
   $roleSelect .= "</select>\n";
 
   // Build four SELECT form elements for patterns.
 
+  if(isset($_REQUEST['patno']))
+    $patno = explode(',', $_REQUEST['patno']);
+  else
+    $patno = [0,0,0,0];
+    
   for($j = 1; $j <= TOPPATS; $j++) {
+    $ps = $patno[$j-1];
     $patSelect[$j] = "<select name=\"pattern$j\" id=\"patselect$j\">
-   <option value=\"0\">Select pattern $j</option>
-  ";
+  <option value=\"0\">Select pattern $j</option>
+";
     for($i = 1; $i <= PATCOUNT; $i++) {
-      $patSelect[$j] .= " <option value=\"$i\" title=\"$i\">{$pnames[$i-1]}</option>\n";
+      $patSelect[$j] .= " <option value=\"$i\" title=\"$i\"" .
+        (($ps == $i) ? ' selected' : '') .
+        ">{$pnames[$i-1]}</option>\n";
     }
     $patSelect[$j] .= "</select>\n";
   }
@@ -233,55 +247,34 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 	
     } // end rst()
 
-    /* resetf()
+    /* relocate()
      *
-     *  Service the reset button on the developer toolbar.
+     *  Called when the GO button is pressed.
      */
+     
+    function relocate(event) {
 
-    function resetf(event) {
-      if(roleselect.value <= 0)
-        return false
-      roleselect.disabled = false
-      roleselect.value = 0
-      patselect1.disabled = true
-      patselect2.disabled = true
-      patselect3.disabled = true
-      patselect4.disabled = true
-      patselect1.value = 0
-      patselect2.value = 0
-      patselect3.value = 0
-      patselect4.value = 0
+      // Forge and visit a URL.
 
-    } // end resetf()
-    
-    /* roled()
-     *
-     * Called when a role is selected on the developer toolbar.
-     */
+      nlocation = '<?=$_SERVER['SCRIPT_NAME']?>?role=' + roleselect.value +
+       '&patno=' + patselect1.value + ',' + patselect2.value + ',' +
+       patselect3.value + ',' + patselect4.value
+      document.location.assign(nlocation)
 
-    function roled(event) {
+    } // end relocate()
 
-      // disable the role button
-
-      roleselect.disabled = true
-
-      // enable the pattern buttons
-      
-      patselect1.disabled = false
-      patselect2.disabled = false
-      patselect3.disabled = false
-      patselect4.disabled = false
-
-    } //end roled()
-  
     /* select()
      *
-     *  Called when a pattern selector on developer toolbar changes.
+     *  Called when a pattern or role selector on developer toolbar changes.
      */
 
     function select(event) {
       id = event.target.id
-    
+
+      // Disable the GO button.
+      
+      goel.disabled = true
+
       // Check that all SELECTs have values.
 
       if(roleselect.value < 1 || patselect1.value < 1 || patselect2.value < 1
@@ -302,15 +295,11 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
         return false
       pats.push(patselect4.value)
 
-      // Forge and visit a URL.
+      // Everything checks out. Enable the GO button.
 
-      nlocation = '<?=$_SERVER['SCRIPT_NAME']?>?role=' + roleselect.value +
-       '&patno=' + patselect1.value + ',' + patselect2.value + ',' +
-       patselect3.value + ',' + patselect4.value
-      document.location.assign(nlocation)
+      goel.disabled = false
 
     } // end select()
-
   </script>
 
 </head>
@@ -318,7 +307,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 <body>
 
   <div id="selcont">
-    <input type="button" id="resetb" value="Reset">
+    <input type="button" id="relocate" value="Go" disabled>
     <?=$roleSelect?>
     <?=$patSelect[1]?>
     <?=$patSelect[2]?>
@@ -401,24 +390,20 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
     dev = document.querySelector('#dev')
     ta = document.querySelector('#ta')
 
+    goel = document.querySelector('#relocate')
+    goel.addEventListener('click', relocate)
+
     roleselect = document.querySelector('#roleselect')
-    roleselect.addEventListener('change', roled)
+    roleselect.addEventListener('change', select)
 
     patselect1 = document.querySelector('#patselect1')
-    patselect1.disabled = true
     patselect1.addEventListener('change', select)
     patselect2 = document.querySelector('#patselect2')
-    patselect2.disabled = true
     patselect2.addEventListener('change', select)
     patselect3 = document.querySelector('#patselect3')
-    patselect3.disabled = true
     patselect3.addEventListener('change', select)
     patselect4 = document.querySelector('#patselect4')
-    patselect4.disabled = true
     patselect4.addEventListener('change', select)
-
-    resetb = document.querySelector('#resetb')
-    resetb.addEventListener('click', resetf)
 
     selcont = document.querySelector('#selcont')
 <?php
