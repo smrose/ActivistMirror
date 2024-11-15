@@ -174,7 +174,7 @@ foreach($bytweak as $patno => $tweak) {
 if(isset($Verbiage)) {
   $Remember = LocalString($language, MESSAGES, REMEMBER);
 } else {
-  $Verbiage = Verbiage($toprole, NULL, $language);
+  $Verbiage = Verbiage($toprole, 0, $language);
   $Remember = LocalString($language, MESSAGES, ASSUME);
 }
 

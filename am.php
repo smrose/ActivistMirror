@@ -610,19 +610,13 @@ function Dev() {
  *  string (if any).
  */
 
-function Verbiage($role, $pattern = NULL, $language) {
+function Verbiage($role, $pattern, $language) {
   global $con;
 
   $sql = "SELECT vstring FROM verbiage WHERE role = ? AND language = ? AND pattern ";
-  if(is_null($pattern)) {
-    $sql .= 'IS NULL';
-    $sth = $con->prepare($sql);
-    $sth->bind_param('is', $role, $language);
-  } else {
-    $sql .= " = ?";
-    $sth = $con->prepare($sql);
-    $sth->bind_param('isi', $role, $language, $pattern);
-  }
+  $sql .= " = ?";
+  $sth = $con->prepare($sql);
+  $sth->bind_param('isi', $role, $language, $pattern);
   $sth->execute();
   $res = $sth->get_result();
   $v = $res->fetch_row();
