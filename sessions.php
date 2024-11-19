@@ -207,9 +207,11 @@ function VersionMenu() {
  *  clause.
  *
  *  $conditions is used to build and execute an SQL statement with columns
- *  from tables 'sessions', 'roles', and 'match_roles'.
+ *  from 'sessions'.
  *
- *  A second query adds the top pattern ids and titles for the session.
+ *  A second query adds role.name using tables match_roles and roles.
+ *
+ *  A third query adds the top pattern ids and titles for the session.
  */
 
 function GetSessions() {
@@ -273,10 +275,8 @@ function GetSessions() {
 	
   } // end building $conditions
   
-  $sql = 'SELECT s.*, max(total), r.name AS role
- FROM sessions s
-  JOIN match_roles mr ON s.session_id = mr.session_id
-  JOIN roles r ON mr.role_id = id_role';
+  $sql = 'SELECT s.*
+ FROM sessions s';
   if(isset($conditions) && count($conditions)) {
     $sql .= ' WHERE ';
     $first = true;
@@ -287,26 +287,37 @@ function GetSessions() {
       $first = false;
     }
   }
-  $sql .= ' GROUP BY session_id ORDER BY uid';
+  $sql .= ' ORDER BY uid';
   Debug($sql, 2);
   $sth = $con->prepare($sql);
   $sth->execute();
   $res = $sth->get_result();
   $sessions = $res->fetch_all(MYSQLI_ASSOC);
 
-  # add top patterns
+  # add name of top role and names and IDs of top patterns
 
-  $sth = $con->prepare('SELECT p.id AS pattern_id, p.title
+  $sth = $con->prepare('SELECT name
+ FROM match_roles mr
+  JOIN roles r ON role_id = id_role
+ WHERE session_id = ?
+ ORDER BY total DESC LIMIT 1');
+  $sth->bind_param('i', $session_id);
+
+  $sth2 = $con->prepare('SELECT p.id AS pattern_id, p.title
  FROM match_patterns mp
   JOIN pattern p ON mp.pattern_id = p.id
  WHERE session_id = ?
  ORDER BY tweaked_total DESC LIMIT 4');
-  $sth->bind_param('i', $session_id);
+  $sth2->bind_param('i', $session_id);
     
   foreach($sessions as $id => $session) {
     $session_id = $session['session_id'];
     $sth->execute();
     $res = $sth->get_result();
+    $role = $res->fetch_row();
+    $sessions[$id]['role'] = $role[0];
+    $sth2->execute();
+    $res = $sth2->get_result();
     $patterns = $res->fetch_all(MYSQLI_ASSOC);
     $sessions[$id]['patterns'] = $patterns;
   }
@@ -336,6 +347,13 @@ function names($p) {
 
 function ShowSessions($sessions) {
   print "<form id=\"lcontain\" method=\"POST\">
+ <div class=\"bcontain\">
+  <input type=\"submit\" id=\"delete\" name=\"submit\" value=\"Process Deletions\">
+  <button id=\"cancel\">Cancel</button>
+  <input type=\"submit\" id=\"download\" name=\"submit\" value=\"Download\">
+  <button type=\"button\" id=\"selectall\">Select All</button>
+  <button type=\"button\" id=\"clearall\">Unselect All</button>
+ </div>
  <div id=\"sess\">
   <div class=\"sh\">Created</div>
   <div class=\"sh\">Language</div>
@@ -359,26 +377,40 @@ function ShowSessions($sessions) {
     $date = UnixToDate($session['uid']);
     $date = "{$date['year']}-{$date['month']}-{$date['day']}";
     $patterns = implode(',', array_map('names', $session['patterns']));
-    print "  <div>$date</div>
+    if(strlen($session['prompt']) > 40) {
+      $prompt = substr($session['prompt'], 0, 37) . '...';
+      $prtitle = ' title="' . $session['prompt'] . '"';
+    } else {
+      $prompt = $session['prompt'];
+      $prtitle = '';
+    }
+    if(strlen($session['suggestion']) > 40) {
+      $suggestion = substr($session['suggestion'], 0, 37) . '...';
+      $sugtitle = ' title="' . $session['suggestion'] . '"';
+    } else {
+      $suggestion = $session['suggestion'];
+      $sugtitle = '';
+    }
+    print "  <div title=\"{$session['session_id']}\">$date</div>
   <div>{$session['language']}</div>
   <div>{$session['role']}</div>
   <div>$patterns</div>
   <div>{$session['version']}</div>
   <div>{$session['group']}</div>
   <div>{$session['project']}</div>
-  <div>{$session['prompt']}</div>
-  <div>{$session['suggestion']}</div>
+  <div$prtitle>{$prompt}</div>
+  <div$sugtitle>$suggestion</div>
   <div>{$session['dev']}</div>
   <div><input type=\"checkbox\" name=\"${session['session_id']}\" value=\"1\"></div>\n\n";
   } // end loop on sessions
   
   print " </div>
- <div id=\"bcontain\">
+ <div class=\"bcontain\">
+  <input type=\"submit\" id=\"delete\" name=\"submit\" value=\"Process Deletions\">
   <button id=\"cancel\">Cancel</button>
   <input type=\"submit\" id=\"download\" name=\"submit\" value=\"Download\">
   <button type=\"button\" id=\"selectall\">Select All</button>
   <button type=\"button\" id=\"clearall\">Unselect All</button>
-  <input type=\"submit\" id=\"delete\" name=\"submit\" value=\"Process Deletions\">
  </div>
 </form>
 ";

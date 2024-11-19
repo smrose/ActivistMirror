@@ -44,7 +44,7 @@ body {
     margin-left: 2em;
     width: max-content;
 }
-#bcontain {
+.bcontain {
     text-align: center;
     margin: 1em;
 }
