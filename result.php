@@ -307,12 +307,12 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 <body>
 
   <div id="selcont">
-    <input type="button" id="relocate" value="Go" disabled>
     <?=$roleSelect?>
     <?=$patSelect[1]?>
     <?=$patSelect[2]?>
     <?=$patSelect[3]?>
     <?=$patSelect[4]?>
+    <input type="button" id="gob" value="Go" disabled>
   </div>
 
   <div id="tcol">
@@ -390,7 +390,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
     dev = document.querySelector('#dev')
     ta = document.querySelector('#ta')
 
-    goel = document.querySelector('#relocate')
+    goel = document.querySelector('#gob')
     goel.addEventListener('click', relocate)
 
     roleselect = document.querySelector('#roleselect')

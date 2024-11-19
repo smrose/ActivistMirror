@@ -1,0 +1,77 @@
+body {
+    background-image: url("img/SummerWinter1.png");
+    font-family: "Inria Sans", sans-serif;
+}
+#brand {
+    font-family: "Archivo Black", sans-serif;
+    font-size: 5vw;
+    font-weight: 800;
+    position: fixed;
+    bottom: 1vh;
+    left: 1vh;
+    width: auto;
+    color: rgb(0,0,0,20%);
+    text-align: center;
+    z-index: -1;
+}
+#filter {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    grid-column-gap: .5vw;
+    width: max-content;
+    border: 2px solid #666;
+    margin-left: 2em;
+    background-color: rgb(240, 240, 240, 30%);
+    padding: .3em;
+    box-shadow: 4px 4px 4px tan;
+}
+#fsub {
+    text-align: center;
+    grid-column: span 2;
+}
+.a {
+    transform: scale(-1,1);
+    display: inline-block;
+}
+.fh {
+    font-weight: bold;
+    text-align: right;
+}
+.sel {
+    display: none;
+}
+#lcontain {
+    margin-left: 2em;
+    width: max-content;
+}
+#bcontain {
+    text-align: center;
+    margin: 1em;
+}
+#sess {
+    display: grid;
+    grid-template-columns: repeat(11, auto);
+    width: max-content;
+    background-color: rgb(240, 240, 240, 50%);
+    box-shadow: 3px 3px 3px #585;
+}
+#sess div {
+    text-align: center;
+    margin: 0px;
+    padding: 2px;
+    border: 1px solid white;
+}
+#delete, #download {
+    font-weight: bold;
+}
+.sh {
+    font-weight: bold;
+    text-align: center;
+    background-color: rgb(240, 240, 240, 90%);
+}
+button {
+    font-weight: bold;
+}
+button:hover {
+    background-color: #ccc;
+}

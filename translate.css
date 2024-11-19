@@ -67,19 +67,19 @@ body {
   font-weight: 600;
 }
 .cronut {
-  display: grid;
-  grid-template-columns: repeat(2, 50%);
-  background-color: rgb(0,0,0,10%);
-  padding: .5em;
+    display: grid;
+    grid-template-columns: repeat(2, 50%);
+    background-color: rgb(0,0,0,10%);
+    padding: .5em;
 }
 .cronut > div {
-  margin: .1em;
-  padding: .1em;
-  background-color: rgb(240, 240, 240, 60%);
+    margin: .1em;
+    padding: .1em;
+    background-color: rgb(240, 240, 240, 60%);
 }
 .sub {
-  text-align: center;
-  grid-column: span 2;
+    text-align: center;
+    grid-column: span 2;
 }
 .sub input {
     font-weight: 600;

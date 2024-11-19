@@ -39,6 +39,7 @@
  *  Dev()                value of the 'dev' cookie; NULL if it doesn't exist
  *  Verbiage()           fetch a row from the verbiage table
  *  GetLanguages()       return the supported languages
+ *  GetUser              return a 'translator' record
  */
 
 const MODE_THRESHOLD = 1000;
@@ -665,3 +666,29 @@ function GetLanguages($code = null) {
   }
   
 } /* end GetLanguages() */
+
+
+/* GetUser()
+ *
+ *  Return a user.
+ *
+ *   CREATE TABLE translator (
+ *    id integer NOT NULL AUTO_INCREMENT,
+ *    userid varchar(16) NOT NULL,
+ *    super tinyint(1) NOT NULL DEFAULT 0,
+ *    PRIMARY KEY (id),
+ *    UNIQUE KEY userid (userid)
+ *   );
+ */
+
+function GetUser($username) {
+  global $con;
+
+  $sth = $con->prepare('SELECT * FROM translator WHERE userid = ?');
+  $sth->bind_param('s', $username);
+  $sth->execute();
+  if($r = $sth->get_result())
+    $translator = $r->fetch_assoc();
+  return($translator);
+
+} /* end GetUser() */

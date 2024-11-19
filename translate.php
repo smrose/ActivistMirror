@@ -27,7 +27,6 @@
  *  UpdateVerbiage   update a row in 'verbiage'
  *  DeleteVerbiage   delete a row from 'verbiage'
  *  GetUsers         return array of all translators
- *  GetUser          return a translator
  *  Translators      present a form for assigning translators
  *  Users            add user
  *  SetTranslators   absorb setting of translators
@@ -801,32 +800,6 @@ function GetUsers() {
   return($translators);
 
 } /* end GetUsers() */
-
-
-/* GetUser()
- *
- *  Return a translator.
- *
- *   CREATE TABLE `translator` (
- *    id integet NOT NULL AUTO_INCREMENT,
- *    userid varchar(16) NOT NULL,
- *    super tinyint(1) NOT NULL DEFAULT 0,
- *    PRIMARY KEY (id),
- *    UNIQUE KEY userid (userid)
- *   );
- */
-
-function GetUser($username) {
-  global $con;
-
-  $sth = $con->prepare('SELECT * FROM translator WHERE userid = ?');
-  $sth->bind_param('s', $username);
-  $sth->execute();
-  if($r = $sth->get_result())
-    $translator = $r->fetch_assoc();
-  return($translator);
-
-} /* end GetUser() */
 
 
 /* Translators()
