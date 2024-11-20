@@ -14,9 +14,12 @@
  *  UnixToDate   [year, month, day] from a Unix time
  *  TimeMenus    create menu elements for selecting a date range
  *  VersionMenus create a versions menu
+ *  AddRolePat   augment sessions records with role and patterns
  *  GetSessions  return sessions, filtered
  *  ShowSessions table of session data
  *  SetFilter    form for selecting session summary
+ *  DoDeletes    process session deletions
+ *  Download     perform a download
  */
 
 $debug = 2;
@@ -199,13 +202,18 @@ function VersionMenu() {
 
 /* AddRolePat()
  *
- * Add name of top role and names and IDs of top patterns.
+ * To $sessions, for each session add:
+ *   1. name of top role as 'role'
+ *   2. names and IDs of top patterns as 'patterns', an array of TOPPATS
+ *       arrays with 'pattern_id' and 'title'  fields
+ *   3. the title and id of the top-scoring pattern for which a 'verbiage'
+ *       row exists as 'discussed' and 'discussed_id' or 'none' and 0
  */
 
 function AddRolePat(&$sessions) {
   global $con;
 
-  $sth = $con->prepare('SELECT name
+  $sth = $con->prepare('SELECT name, role_id
  FROM match_roles mr
   JOIN roles r ON role_id = id_role
  WHERE session_id = ?
@@ -218,18 +226,68 @@ function AddRolePat(&$sessions) {
  WHERE session_id = ?
  ORDER BY tweaked_total DESC LIMIT 4');
   $sth2->bind_param('i', $session_id);
+
+  $sth3 = $con->prepare('SELECT pattern, p.title
+ FROM verbiage v JOIN pattern p ON v.pattern = p.id
+ WHERE role = ? AND pattern IN (?,?,?,?)');
+  $sth3->bind_param('iiiii', $toproleid,
+                    $patid[0], $patid[1], $patid[2], $patid[3]);
     
   foreach($sessions as $id => $session) {
     $session_id = $session['session_id'];
+
     $sth->execute();
     $res = $sth->get_result();
     $role = $res->fetch_row();
-    $sessions[$id]['role'] = $role[0];
+    $toprole = $role[0];
+    $toproleid = $role[1];
+    $sessions[$id]['role'] = $toprole;
+
     $sth2->execute();
     $res = $sth2->get_result();
     $patterns = $res->fetch_all(MYSQLI_ASSOC);
+    for($i = 0; $i < TOPPATS; $i++)
+      $patid[$i] = $patterns[$i]['pattern_id'];
     $sessions[$id]['patterns'] = $patterns;
-  }
+
+    $sth3->execute();
+    $res = $sth3->get_result();
+    if($res->num_rows) {
+      $v = $res->fetch_all();
+      
+      if($res->num_rows == 1) {
+
+        // One verbiage row matches.
+	
+        $sessions[$id]['discussed'] = $v[0][1];
+        $sessions[$id]['discussed_id'] = $v[0][0];
+      } else {
+
+        /* There are multiple verbiage rows for this role and pattern set.
+         * We want the row corresponding to the highest-scoring pattern. */
+      
+        $found = false;
+        foreach($patid as $pid) {
+          foreach($v as $tv) {
+	    if($tv[0] == $pid) {
+	      $sessions[$id]['discussed'] = $tv[1];
+	      $sessions[$id]['discussed_id'] = $tv[0];
+	      $found = true;
+	      break;
+	    }
+          }
+	  if($found)
+	    break;
+        } // end loop on patterns
+      }
+    } else {
+
+      // There is no verbiage for this role and pattern set.
+      
+      $sessions[$id]['discussed_title'] = 'none';
+      $sessions[$id]['discussed_id'] = 0;
+    }
+  } // end loop on sessions
 
 } // end AddRolePat()
 
@@ -341,6 +399,10 @@ function names($p) {
   return $p['title'];
 } // end names()
 
+function ids($p) {
+  return $p['pattern_id'];
+} // end ids()
+
 
 /* ShowSessions()
  *
@@ -369,6 +431,7 @@ function ShowSessions($sessions) {
   <div class=\"sh\">Created</div>
   <div class=\"sh\">Language</div>
   <div class=\"sh\">Role</div>
+  <div class=\"sh\">Discussed</div>
   <div class=\"sh\">Patterns</div>
   <div class=\"sh\">Version</div>
   <div class=\"sh\">Group</div>
@@ -388,6 +451,7 @@ function ShowSessions($sessions) {
     $date = UnixToDate($session['uid']);
     $date = "{$date['year']}-{$date['month']}-{$date['day']}";
     $patterns = implode(',', array_map('names', $session['patterns']));
+    $pids = implode(',', array_map('ids', $session['patterns']));
     if(strlen($session['prompt']) > 40) {
       $prompt = substr($session['prompt'], 0, 37) . '...';
       $prtitle = ' title="' . $session['prompt'] . '"';
@@ -405,7 +469,8 @@ function ShowSessions($sessions) {
     print "  <div title=\"{$session['session_id']}\">$date</div>
   <div>{$session['language']}</div>
   <div>{$session['role']}</div>
-  <div>$patterns</div>
+  <div title=\"{$session['discussed_id']}\">{$session['discussed']}</div>
+  <div title=\"$pids\">$patterns</div>
   <div>{$session['version']}</div>
   <div>{$session['group']}</div>
   <div>{$session['project']}</div>
@@ -543,8 +608,9 @@ function Download() {
   $fields = [
     'sessionid',
     'timestamp', 'language', 'version', 'group', 'project', 'prompt',
-    'suggestion', 'developer', 'role', 'pattern1', 'pid1', 'pattern2',
-    'pid2', 'pattern3', 'pid3', 'pattern4', 'pid4'
+    'suggestion', 'developer', 'role', 'discussed', 'discussed_id',
+    'pattern1', 'pid1', 'pattern2', 'pid2', 'pattern3', 'pid3', 'pattern4',
+    'pid4'
   ];
   fputcsv($fh, $fields, "\t");
 

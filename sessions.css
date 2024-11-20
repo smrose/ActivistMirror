@@ -50,7 +50,7 @@ body {
 }
 #sess {
     display: grid;
-    grid-template-columns: repeat(11, auto);
+    grid-template-columns: repeat(12, auto);
     width: max-content;
     background-color: rgb(240, 240, 240, 50%);
     box-shadow: 3px 3px 3px #585;
