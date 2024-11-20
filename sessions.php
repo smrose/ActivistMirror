@@ -197,6 +197,43 @@ function VersionMenu() {
 } // end VersionMenu()
 
 
+/* AddRolePat()
+ *
+ * Add name of top role and names and IDs of top patterns.
+ */
+
+function AddRolePat(&$sessions) {
+  global $con;
+
+  $sth = $con->prepare('SELECT name
+ FROM match_roles mr
+  JOIN roles r ON role_id = id_role
+ WHERE session_id = ?
+ ORDER BY total DESC LIMIT 1');
+  $sth->bind_param('i', $session_id);
+
+  $sth2 = $con->prepare('SELECT p.id AS pattern_id, p.title
+ FROM match_patterns mp
+  JOIN pattern p ON mp.pattern_id = p.id
+ WHERE session_id = ?
+ ORDER BY tweaked_total DESC LIMIT 4');
+  $sth2->bind_param('i', $session_id);
+    
+  foreach($sessions as $id => $session) {
+    $session_id = $session['session_id'];
+    $sth->execute();
+    $res = $sth->get_result();
+    $role = $res->fetch_row();
+    $sessions[$id]['role'] = $role[0];
+    $sth2->execute();
+    $res = $sth2->get_result();
+    $patterns = $res->fetch_all(MYSQLI_ASSOC);
+    $sessions[$id]['patterns'] = $patterns;
+  }
+
+} // end AddRolePat()
+
+
 /* GetSessions()
  *
  *  Fetch a filtered set of submissions.
@@ -294,33 +331,7 @@ function GetSessions() {
   $res = $sth->get_result();
   $sessions = $res->fetch_all(MYSQLI_ASSOC);
 
-  # add name of top role and names and IDs of top patterns
-
-  $sth = $con->prepare('SELECT name
- FROM match_roles mr
-  JOIN roles r ON role_id = id_role
- WHERE session_id = ?
- ORDER BY total DESC LIMIT 1');
-  $sth->bind_param('i', $session_id);
-
-  $sth2 = $con->prepare('SELECT p.id AS pattern_id, p.title
- FROM match_patterns mp
-  JOIN pattern p ON mp.pattern_id = p.id
- WHERE session_id = ?
- ORDER BY tweaked_total DESC LIMIT 4');
-  $sth2->bind_param('i', $session_id);
-    
-  foreach($sessions as $id => $session) {
-    $session_id = $session['session_id'];
-    $sth->execute();
-    $res = $sth->get_result();
-    $role = $res->fetch_row();
-    $sessions[$id]['role'] = $role[0];
-    $sth2->execute();
-    $res = $sth2->get_result();
-    $patterns = $res->fetch_all(MYSQLI_ASSOC);
-    $sessions[$id]['patterns'] = $patterns;
-  }
+  AddRolePat($sessions);
   return($sessions);
   
 } // end GetSessions()
@@ -505,16 +516,18 @@ function DoDeletes() {
 function Download() {
   global $con;
 
+  ob_start();
+
   # Build a list of session_id values from the form.
 
   $ids = implode(',', $_POST['id']);
 
   # Fetch those sessions plus the top role for each
 
-  $sql = "SELECT s.session_id, uid, language, version, `group`, project, prompt, suggestion, dev AS developer, max(total) AS total, r.name AS role
+  $sql = "SELECT s.session_id, uid, language, version, `group`, project, prompt, suggestion, dev AS developer
   FROM sessions s
-  JOIN match_roles mr ON s.session_id = mr.session_id
-  JOIN roles r ON mr.role_id = id_role
+   JOIN match_roles mr ON s.session_id = mr.session_id
+   JOIN roles r ON mr.role_id = id_role
  WHERE s.session_id IN ($ids)
  GROUP BY s.session_id
  ORDER BY uid";
@@ -522,33 +535,13 @@ function Download() {
   $sth->execute();
   $res = $sth->get_result();
   $sessions = $res->fetch_all(MYSQLI_ASSOC);
-
-  # Augment with the top 4 patterns.
-
-  $sth = $con->prepare('SELECT p.id AS pattern_id, p.title
- FROM match_patterns mp
-  JOIN pattern p ON mp.pattern_id = p.id
- WHERE session_id = ?
-  ORDER BY tweaked_total DESC LIMIT 4');
-  $sth->bind_param('i', $session_id);
-
-  foreach($sessions as $id => $session) {
-    $session_id = $session['session_id'];
-    unset($sessions[$session_id]['session_id']);
-    unset($sessions[$session_id]['total']);
-    $sth->execute();
-    $res = $sth->get_result();
-    $patterns = $res->fetch_all(MYSQLI_ASSOC);
-    for($i = 1; $i <= TOPPATS; $i++) {
-      $sessions[$id]["pattern$i"] = $patterns[$i-1]['title'];
-      $sessions[$id]["pid$i"] = $patterns[$i-1]['pattern_id'];
-    }
-  }
+  AddRolePat($sessions);
 
   # Create the CSV content.
 
   $fh = fopen('php://output', 'w');
   $fields = [
+    'sessionid',
     'timestamp', 'language', 'version', 'group', 'project', 'prompt',
     'suggestion', 'developer', 'role', 'pattern1', 'pid1', 'pattern2',
     'pid2', 'pattern3', 'pid3', 'pattern4', 'pid4'
@@ -556,6 +549,13 @@ function Download() {
   fputcsv($fh, $fields, "\t");
 
   foreach($sessions as $session) {
+    $i = 1;
+    foreach($session['patterns'] as $pattern) {
+      $session["pattern$i"] = $pattern['title'];
+      $session["pid$i"] = $pattern['pattern_id'];
+      $i++;
+    }
+    unset($session['patterns']);
     fputcsv($fh, $session, "\t");
   }
   fclose($fh);
