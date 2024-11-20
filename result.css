@@ -20,6 +20,15 @@
     font-weight: 700;
     font-size: 3vw;
     margin-bottom: 2vh;
+    animation: 2s rb;
+}
+@keyframes rb {
+    from {
+	opacity: 0;
+    }
+    to {
+	opacity: 1;
+    }
 }
 #rimagectnr {
     margin-bottom: 1vh;
