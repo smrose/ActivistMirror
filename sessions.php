@@ -625,8 +625,9 @@ function Download() {
     fputcsv($fh, $session, "\t");
   }
   fclose($fh);
+  $csv = 'AM-sessions.' . date('Y.m.d') . '.csv';
   header('Content-Type: text/csv'); 
-  header('Content-Disposition: attachment; filename=".doggy.csv";'); 
+  header('Content-Disposition: attachment; filename="' . $csv . '";'); 
   exit();
   
 } // end Download()
