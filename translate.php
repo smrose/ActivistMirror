@@ -13,7 +13,6 @@
  *  GetLanguages     return a list of supported languages
  *  ChooseLanguages  select languages and item type
  *  ManageLanguages  add and edit supported languages
- *  ManageTranslators edit the translators
  *  AuthConnect      connect to the auth database
  *  Locals           fetch strings of this type and language
  *  Error            fail in disgrace
@@ -21,11 +20,15 @@
  *  Absorb           absorb edited strings
  *  GetTranslators   return a list of users and the languages they support
  *  InsertLocal      insert a row into 'locals'
+ *  InsertLanguage   insert a row into 'language'
  *  UpdateLocal      update a row in 'locals'
  *  DeleteLocal      delete a row from 'locals'
  *  GetUsers         return array of all PHPAuth users
  *  Translators      present a form for assigning translators
  *  SetTranslators   absorb setting of translators
+ *  CreateString     present a form for creating a string
+ *  CreateString2    create a string
+ *  Counts           return number of strings and translators for each language
  *
  * NOTES
  *
@@ -66,13 +69,16 @@
  *  which they are authorized to support and which type of strings they wish
  *  to translate. All the strings of that type in the source language - 
  *  usually US English - are presented next to a textarea in which the
- *  corresponding string in the destination language - never US English -
- *  can be edited or entered. Those entries and/or edits are then used to
- *  generate INSERT and/or UPDATE statements.
+ *  corresponding string in the destination language can be edited or entered.
+ *  Those entries and/or edits are then used to generate INSERT and/or UPDATE
+ *  statements.
  *
  *  Superusers are authorized to assign users to roles as translators for
  *  supported languages and to edit the list of supported languages.
  *  They can also enter translations.
+ *
+ *  Superusers can edit US English strings by choosing US English as both the
+ *  source and destination languages.
  */
 
 
@@ -86,10 +92,10 @@ function ItemTypes($itemtype_id = null) {
   global $con;
 
   $sql = 'SELECT *, count(*) FROM itemtypes i
- JOIN locals l ON i.itemtype_id = l.itemtype
- GROUP BY itemtype_id';
+ JOIN locals l ON i.itemtype_id = l.itemtype';
   if(isset($itemtype_id))
     $sql .= ' WHERE itemtype_id = ?';
+ $sql .= ' GROUP BY itemtype_id';
   $sth = $con->prepare($sql);
   if(isset($itemtype_id))
     $sth->bind_param('i', $itemtype_id);
@@ -170,6 +176,8 @@ function ChooseLanguages($langs) {
       $defaultDest = $_POST['destination'];
     if(isset($_POST['itemtype']))
       $defaultItem = $_POST['itemtype'];
+    else
+      $defaultItem = '';
   }
 
   foreach($languages as $language) {
@@ -180,7 +188,7 @@ function ChooseLanguages($langs) {
     $selected = ($code == $defaultSource) ? ' selected' : '';
     $source .= " <option value=\"${language['code']}\"$selected>${language['description']}</option>\n";
 
-    if($code != 'en') {
+    if($super || $code != 'en') {
       $selected = ($code == $defaultDest) ? ' selected' : '';
       $able = (!$super && !in_array($code, $langs)) ? ' disabled' : '';
       $destination .= " <option value=\"${language['code']}\"$able$selected>${language['description']}</option>\n";
@@ -198,7 +206,7 @@ function ChooseLanguages($langs) {
   $destination .= "</select>\n";
   $itemtype .= "</select>\n";
 
-  print "<h2>Translate</h2>
+  print "<h2 id=\"translate\">Translate</h2>
 <p style=\"font-weight: bold\">Start by selecting a source and destination language and the type of strings you intend to translate.</p>
 
 <form method=\"POST\" class=\"challah\">
@@ -215,22 +223,49 @@ function ChooseLanguages($langs) {
 
 /* ManageLanguages()
  *
- *  Add or edit supported languages.
+ *  TODO: Add or edit supported languages.
  */
  
 function ManageLanguages() {
+  $languages = GetLanguages();
+  $counts = Counts();
+
+  print "<h2 id=\"createlanguage\">Manage Languages</h2>
+
+<form method=\"POST\" action=\"{$_SERVER['SCRIPT_NAME']}\" enctype=\"multipart/form-data\" class=\"tform\">
+<input type=\"hidden\" name=\"state\" value=\"nlang\">
+<div class=\"thead\">Language</div>
+<div class=\"thead\">Code</div>
+<div class=\"thead\">Translators</div>
+<div class=\"thead\">Strings</div>
+";
+
+  foreach($languages as $language) {
+    $lcode = $language['code'];
+    $translators = isset($counts[$lcode]['translators'])
+      ? $counts[$lcode]['translators']
+      : (($lcode == 'en') ? '' : 'none');
+    $locals = isset($counts[$lcode]['locals'])
+      ? $counts[$lcode]['locals'] : 'none';
+
+    print "<div style=\"text-align: center\">{$language['description']}</div>
+<div style=\"text-align: center\">$lcode</div>
+<div style=\"text-align: right\">$translators</div>
+<div style=\"text-align: right\">$locals</div>
+";
+  }
+  print "<div><input type=\"text\" name=\"description\" size=\"10\"></div>
+  <div><input type=\"text\" name=\"lcode\" size=\"2\" maxlength=\"2\" minlength=\"2\"></div>
+  <div></div>
+  <div></div>
+  <div class=\"tforms\">
+ <input type=\"submit\" name=\"submit\" value=\"Absorb\">
+ <input type=\"submit\" name=\"submit\" value=\"Cancel\">
+</div>
+</form>
+";
   
 } /* end ManageLanguages() */
-
-
-/* ManageTranslators()
- *
- *  Manage translators.
- */
- 
-function ManageTranslators() {
-  
-} /* end ManageTranslators() */
 
 
 /* AuthConnect()
@@ -502,6 +537,26 @@ function InsertLocal($opt) {
 } /* end InsertLocal() */
 
 
+/* InsertLanguage()
+ *
+ *  Insert one record in language.
+ */
+ 
+function InsertLanguage($opt) {
+  global $con;
+
+  $sql = 'INSERT INTO language (description, code)
+ VALUES(?,?)';
+ $sth = $con->prepare($sql);
+ $sth->bind_param('ss',
+                  $opt['description'],
+  		  $opt['code']);
+ $sth->execute();
+ $sth->close();
+
+} /* end InsertLanguage() */
+
+
 /* UpdateLocal()
  *
  *  Update one record in locals.
@@ -588,7 +643,7 @@ function Translators() {
   $translators = GetTranslators();
   $languages = GetLanguages();
   
-  print "<h2>Assign Translators</h2>
+  print "<h2 id=\"assigntranslators\">Assign Translators</h2>
 
 <p style=\"font-weight: bold\">Superusers assign users to languages in this form.</p>
 
@@ -755,6 +810,81 @@ function DeleteTranslator($userid, $lcode) {
 } // end DeleteTranslator()
 
 
+/* CreateString()
+ *
+ *  Present a form for creating a new string.
+ */
+
+function CreateString() {
+
+  $itemtypes = ItemTypes(); // itemtype_id, itemtype
+  $itemtype = "<select name=\"itemtype\">\n";
+  foreach($itemtypes as $it)
+    $itemtype .= " <option value=\"${it[0]}\">${it[1]}</option>\n";
+  $itemtype .= "</select>\n";
+
+  print "<h2 id=\"createstring\">Create New String</h2>
+
+<form method=\"POST\" class=\"challah\">
+<div class=\"chead\">String type:</div><div>$itemtype</div>
+<div class=\"csub\">
+ <input type=\"submit\" name=\"submit\" value=\"Create\">
+ <input type=\"submit\" name=\"submit\" value=\"Cancel\">
+</div>
+</form>
+";
+
+} // end CreateString()
+
+
+/* CreateString2()
+ *
+ *  Create a new string.
+ */
+
+function CreateString2($itemtype) {
+  global $con;
+  
+  $sth = $con->prepare('SELECT max(object_id) FROM locals WHERE itemtype = ?');
+  $sth->bind_param('i', $itemtype);
+  $sth->execute();
+  $res = $sth->get_result();
+  $object_id = $res->fetch_column();
+  $object_id++;
+  
+  InsertLocal([
+    'localstring' => '',
+    'object_id' => $object_id,
+    'itemtype' => $itemtype,
+    'language' => 'en'
+  ]);
+  print "<p class=\"alert\">Inserted new string with itemtype $itemtype and object id $object_id</p>\n";
+  
+} // end CreateString2()
+
+
+/* Counts()
+ *
+ *  Return the number of locals and translators for each language in an
+ *  array keyed on language code.
+ */
+
+function Counts() {
+  global $con;
+
+  $counts= [];
+  $result = $con->query('SELECT language AS lcode, count(*) AS locals FROM locals GROUP BY lcode');
+  while($row = $result->fetch_assoc())
+    $counts[$row['lcode']] = $row;
+  $result = $con->query('SELECT lcode, count(*) AS translators FROM translator GROUP BY lcode');
+  while($row = $result->fetch_assoc())
+    $counts[$row['lcode']]['translators'] = $row['translators'];
+
+  return($counts);
+
+} // end Counts()
+
+
 ?>
 <!DOCTYPE html>
 <html> 
@@ -812,7 +942,16 @@ $rv = 0;
 
 if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
 
-  if($_POST['state'] == 'lang' || $_POST['state'] == 'absorb') {
+  if($_POST['state'] == 'nlang') {
+
+    // Insert a language.
+    
+    $description = $_POST['description'];
+    $lcode = $_POST['lcode'];
+    InsertLanguage(['code' => $lcode, 'description' => $description]);
+    print "<p style=\"font-weight: bold\">Inserted new language <code>$description</code> with code <code>$lcode</code>.</p>\n";
+
+  } elseif($_POST['state'] == 'lang' || $_POST['state'] == 'absorb') {
 
     # languages and itemtype have been specified; present or absorb translations
   
@@ -845,7 +984,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
       # presenting a form for translation entry
     
       $source = $_POST['source'];
-      if($source == $destination)
+      if($source == $destination && $user['role'] != $super && $source != 'en')
         Error("Source and destination languages may not be the same");
       else if($source == 'source' || $destination == 'destination')
         Error("You failed to specify a source and destination language");
@@ -861,13 +1000,43 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
     // absorbing translators
 
     SetTranslators();
+  } elseif($_POST['submit'] == 'Create') {
+
+    // create a string
+
+    CreateString2($_POST['itemtype']);
   }
 }
 
 if(!$rv) {
+
+  if($user['role'] == 'super') {
+    print "<p style=\"font-weight: bold\">Choose an action:</p>
+<ul>
+ <li><a href=\"#translate\">Translate</a></li>
+ <li><a href=\"#createstring\">Create new string</a></li>
+ <li><a href=\"#assigntranslators\">Assign translators</a></li>
+ <li><a href=\"#createlanguage\">Create new language</a></li>
+</ul>
+";
+  }
+
   ChooseLanguages($languages);
-  if($user['role'] == 'super') // superusers assign translators
+  
+  if($user['role'] == 'super') {
+
+    // superusers can create strings
+
+    CreateString();
+  
+    // superusers can assign translators
+
     Translators();
+
+    // superusers can add languages
+
+    ManageLanguages();
+  }
 }
 ?>
 
