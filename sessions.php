@@ -353,7 +353,7 @@ function GetSessions() {
     // uid range
     
     if(isset($filter['earliest']) && isset($filter['latest']))
-      $conditions['uid'] = "BETWEEN {$filter['earliest']} AND {filter['latest']}";
+      $conditions['uid'] = "uid BETWEEN {$filter['earliest']} AND {$filter['latest']}";
     elseif(isset($filter['earliest']))
       $conditions['uid'] = "uid >= {$filter['earliest']}";
     elseif(isset($filter['latest']))
@@ -419,16 +419,10 @@ function ids($p) {
  */
 
 function ShowSessions($sessions) {
-  print "<form id=\"lcontain\" method=\"POST\">
- <div class=\"bcontain\">
-  <input type=\"submit\" id=\"delete\" name=\"submit\" value=\"Process Deletions\">
-  <button id=\"cancel\">Cancel</button>
-  <input type=\"submit\" id=\"download\" name=\"submit\" value=\"Download\">
-  <button type=\"button\" id=\"selectall\">Select All</button>
-  <button type=\"button\" id=\"clearall\">Unselect All</button>
- </div>
- <div id=\"sess\">
-  <div class=\"sh\">Created</div>
+
+  # column headings
+  
+  $headings = "  <div class=\"sh\">Created</div>
   <div class=\"sh\">Language</div>
   <div class=\"sh\">Role</div>
   <div class=\"sh\">Discussed</div>
@@ -442,7 +436,32 @@ function ShowSessions($sessions) {
   <div class=\"sh\">Delete</div>
 ";
 
+  # a row of buttons to display above and below the form
+
+  $bcontain = " <div class=\"bcontain\">
+  <input type=\"submit\" id=\"delete\" name=\"submit\" value=\"Process Deletions\">
+  <button id=\"cancel\">Cancel</button>
+  <input type=\"submit\" id=\"download\" name=\"submit\" value=\"Download\">
+  <button type=\"button\" id=\"selectall\">Select All</button>
+  <button type=\"button\" id=\"clearall\">Unselect All</button>
+ </div>
+";
+
+  # display a table of sessions wrapped in a form
+
+  print "<form id=\"lcontain\" method=\"POST\">
+$bcontain
+<div id=\"sess\">
+";
+
+  # count the rows we display so we can reprint headings periodically
+
+  $row = 0;
+
   foreach($sessions as $session) {
+
+    if(!($row % 20))
+      print $headings;
 
     # Add a hidden element containing the session_id to support downloads.
 
@@ -478,16 +497,13 @@ function ShowSessions($sessions) {
   <div$sugtitle>$suggestion</div>
   <div>{$session['dev']}</div>
   <div><input type=\"checkbox\" name=\"${session['session_id']}\" value=\"1\"></div>\n\n";
+
+  $row++;
+  
   } // end loop on sessions
   
   print " </div>
- <div class=\"bcontain\">
-  <input type=\"submit\" id=\"delete\" name=\"submit\" value=\"Process Deletions\">
-  <button id=\"cancel\">Cancel</button>
-  <input type=\"submit\" id=\"download\" name=\"submit\" value=\"Download\">
-  <button type=\"button\" id=\"selectall\">Select All</button>
-  <button type=\"button\" id=\"clearall\">Unselect All</button>
- </div>
+$bcontain
 </form>
 ";
 
