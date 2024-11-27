@@ -321,7 +321,7 @@ function GetSessions() {
 
     # A filter on dates and/or versions may apply.
     
-    if(!in_array('all', $_POST['version']))
+    if(isset($_POST['version']) && !in_array('all', $_POST['version']))
       foreach($_POST['version'] as $version)
         if($version != 'all')
           $filter['version'][] = $version;
