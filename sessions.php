@@ -24,6 +24,8 @@
 
 $debug = 2;
 require "am.php";
+$aversion = date('H:i:s d/m/Y', filectime('.git/index'));
+
 
 /* versions()
  *
@@ -485,10 +487,12 @@ $bcontain
       $suggestion = $session['suggestion'];
       $sugtitle = '';
     }
+    $discussed = (in_array('discussed', $session)) ? $session['discussed'] : '';
+
     print "  <div title=\"{$session['session_id']}\">$date</div>
   <div>{$session['language']}</div>
   <div>{$session['role']}</div>
-  <div title=\"{$session['discussed_id']}\">{$session['discussed']}</div>
+  <div title=\"{$session['discussed_id']}\">$discussed</div>
   <div title=\"$pids\">$patterns</div>
   <div>{$session['version']}</div>
   <div>{$session['group']}</div>
@@ -658,7 +662,7 @@ if(!isset($user) || !$user['super']) {
   print "<p>Cannot confirm that you are authorized to use this tool. Contact project administration.</p>\n";
   exit;
 }
-if($_POST['submit'] == 'Download') {
+if(in_array('submit', $_POST) && $_POST['submit'] == 'Download') {
   Download();
   exit;
 }
@@ -724,7 +728,7 @@ if($_POST['submit'] == 'Download') {
 
 <body>
 
-<header><h1>Activist Mirror Session Browser</h1></header>
+<header><h1 title="<?=$aversion?>">Activist Mirror Session Browser</h1></header>
 
 <?php
 
@@ -734,7 +738,7 @@ if(sizeof($_POST)) {
 
   // Form submission.
 
-  if($_POST['submit'] == 'Go') {
+  if(in_array('submit', $_POST) && $_POST['submit'] == 'Go') {
 
     // request for sessions has been submitted.
 
@@ -745,9 +749,8 @@ if(sizeof($_POST)) {
     }
     else
       print "<p>No matching sessions.</p>\n";
-  } elseif($_POST['submit'] == 'Process Deletions') {
+  } elseif(in_array('submit', $_POST) && $_POST['submit'] == 'Process Deletions')
     DoDeletes();
-  }
 } 
 if(!$rv)
   SetFilter();
