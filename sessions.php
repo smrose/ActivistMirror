@@ -487,7 +487,7 @@ $bcontain
       $suggestion = $session['suggestion'];
       $sugtitle = '';
     }
-    $discussed = (in_array('discussed', $session)) ? $session['discussed'] : '';
+    $discussed = isset($session['discussed']) ? $session['discussed'] : '';
 
     print "  <div title=\"{$session['session_id']}\">$date</div>
   <div>{$session['language']}</div>
@@ -662,7 +662,7 @@ if(!isset($user) || !$user['super']) {
   print "<p>Cannot confirm that you are authorized to use this tool. Contact project administration.</p>\n";
   exit;
 }
-if(in_array('submit', $_POST) && $_POST['submit'] == 'Download') {
+if(isset($_POST['submit']) && $_POST['submit'] == 'Download') {
   Download();
   exit;
 }
@@ -738,7 +738,7 @@ if(sizeof($_POST)) {
 
   // Form submission.
 
-  if(in_array('submit', $_POST) && $_POST['submit'] == 'Go') {
+  if(isset($_POST['submit']) && $_POST['submit'] == 'Go') {
 
     // request for sessions has been submitted.
 
@@ -749,7 +749,7 @@ if(sizeof($_POST)) {
     }
     else
       print "<p>No matching sessions.</p>\n";
-  } elseif(in_array('submit', $_POST) && $_POST['submit'] == 'Process Deletions')
+  } elseif(isset($_POST['submit']) && $_POST['submit'] == 'Process Deletions')
     DoDeletes();
 } 
 if(!$rv)
