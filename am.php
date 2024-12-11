@@ -1023,8 +1023,12 @@ function Download() {
  WHERE s.session_id IN ($ids)
  GROUP BY s.session_id
  ORDER BY uid";
-  $sth = $con->prepare($sql);
-  $sth->execute();
+  try {
+    $sth = $con->prepare($sql);
+    $sth->execute();
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
   $sessions = $sth->fetchAll(PDO::FETCH_ASSOC);
   AddRolePat($sessions);
 

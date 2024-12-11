@@ -13,7 +13,6 @@
  *  UnixToDate   [year, month, day] from a Unix time
  *  TimeMenus    create menu elements for selecting a date range
  *  VersionMenus create a versions menu
- *  GetSessions  return sessions, filtered
  *  ShowSessions table of session data
  *  SetFilter    form for selecting session summary
  */

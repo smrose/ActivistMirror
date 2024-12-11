@@ -45,12 +45,16 @@ function ItemTypes($itemtype_id = null) {
   if(isset($itemtype_id))
     $sql .= ' WHERE itemtype_id = ?';
   $sql .= ' GROUP BY itemtype_id';
-  $sth = $con->prepare($sql);
   $params = [];
   if(isset($itemtype_id))
     $params = [$itemtype_id];
-  $sth->execute($params);
-  $itemtypes = $sth->fetchAll();
+  try {
+    $sth = $con->prepare($sql);
+    $sth->execute($params);
+    $itemtypes = $sth->fetchAll();
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
   $itemtypes[] = [VERBIAGE_T, 'verbiage'];
   return $itemtypes;
 
@@ -66,8 +70,12 @@ function ItemTypes($itemtype_id = null) {
 function GetRoles() {
   global $con;
 
-  $sth = $con->prepare('SELECT id_role, name FROM roles ORDER BY id_role');
-  $sth->execute();
+  try {
+    $sth = $con->prepare('SELECT id_role, name FROM roles ORDER BY id_role');
+    $sth->execute();
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
   return $sth->fetchAll(PDO::FETCH_ASSOC);
   
 } /* end GetRoles() */
@@ -82,8 +90,12 @@ function GetRoles() {
 function GetPatterns() {
   global $con;
 
-  $sth = $con->prepare('SELECT id, title FROM pattern ORDER BY title');
-  $sth->execute();
+  try {
+    $sth = $con->prepare('SELECT id, title FROM pattern ORDER BY title');
+    $sth->execute();
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
   return $sth->fetchAll(PDO::FETCH_ASSOC);
   
 } /* end GetPatterns() */
@@ -100,11 +112,14 @@ function Locals($itemtype, $language) {
   $sql = 'SELECT localstring, local_id, object_id
  FROM locals
  WHERE itemtype = ? AND language = ?';
-  $sth = $con->prepare($sql);
   $param = [$itemtype, $language];
-  $sth->execute($param);
-  $locals = $sth->fetchAll(PDO::FETCH_ASSOC);
-  
+  try {
+    $sth = $con->prepare($sql);
+    $sth->execute($param);
+    $locals = $sth->fetchAll(PDO::FETCH_ASSOC);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
   foreach($locals as $local)
     $r[$local['object_id']] = $local;
   return $r;
@@ -127,15 +142,22 @@ function Locals($itemtype, $language) {
 function AllVerbiage($language) {
   global $con;
 
-  $sth = $con->prepare('SELECT vstring, role, pattern, r.name AS rolename,
+  $sql = 'SELECT vstring, role, pattern, r.name AS rolename,
   p.title AS patname
  FROM verbiage v
   JOIN roles r ON v.role = r.id_role
   LEFT JOIN pattern p ON v.pattern = p.id 
  WHERE language = ?
- ORDER BY role, pattern');
-  $sth->execute([$language]);
-  $verbiages = $sth->fetchAll(PDO::FETCH_ASSOC);
+ ORDER BY role, pattern';
+
+ try {
+    $sth = $con->prepare($sql);
+    $sth->execute([$language]);
+    $verbiages = $sth->fetchAll(PDO::FETCH_ASSOC);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
+    
   foreach($verbiages as $verbiage) {
     $k = $verbiage['role'] .
       (isset($verbiage['pattern']) ? "_{$verbiage['pattern']}" : '');
@@ -163,11 +185,14 @@ function GetTranslators($userid = null) {
   JOIN ltrans lt ON t.id = lt.tid';
   if(isset($userid))
     $sql .= ' WHERE userid = ?';
-  $sth = $con->prepare($sql);
   $params = isset($userid) ? [$userid] : [];
-  $sth->execute($params);
-  $values = $sth->fetchAll();
-  
+  try {
+    $sth = $con->prepare($sql);
+    $sth->execute($params);
+    $values = $sth->fetchAll();
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
   $translators = [];
   
   foreach($values as $value) {
@@ -356,9 +381,9 @@ function InsertUser($userid, $super) {
   global $con;
 
   $super = is_null($super) ? 0 : 1;
-  $sth = $con->prepare('INSERT INTO translator(userid, super) VALUES(?, ?)');
 
   try {
+    $sth = $con->prepare('INSERT INTO translator(userid, super) VALUES(?, ?)');
     $sth->execute([$userid, $super]);
   } catch(Exception $e) {
     $error = $e->getMessage();
@@ -378,8 +403,12 @@ function InsertTranslator($userid, $lcode) {
   global $con;
 
   $sql = 'INSERT INTO ltrans (tid, lcode) VALUES (?,?)';
-  $sth = $con->prepare($sql);
-  $sth->execute([$userid, $lcode]);
+  try {
+    $sth = $con->prepare($sql);
+    $sth->execute([$userid, $lcode]);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
 
 } // end InsertTranslator()
 
@@ -393,8 +422,12 @@ function DeleteTranslator($userid, $lcode) {
   global $con;
 
   $sql = 'DELETE FROM translator WHERE userid = ? AND lcode = ?';
-  $sth = $con->prepare($sql);
-  $sth->execute([$userid, $lcode]);
+  try {
+    $sth = $con->prepare($sql);
+    $sth->execute([$userid, $lcode]);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
 
 } // end DeleteTranslator()
 
@@ -407,9 +440,13 @@ function DeleteTranslator($userid, $lcode) {
 function CreateString($itemtype) {
   global $con;
   
-  $sth = $con->prepare('SELECT max(object_id) FROM locals WHERE itemtype = ?');
-  $sth->execute([$itemtype]);
-  $object_id = $sth->fetch();
+  try {
+    $sth = $con->prepare('SELECT max(object_id) FROM locals WHERE itemtype = ?');
+    $sth->execute([$itemtype]);
+    $object_id = $sth->fetch();
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
   $object_id = $object_id[0];
   $object_id++;
   
@@ -432,7 +469,11 @@ function CreateString($itemtype) {
 function UpdateLanguage($code, $active) {
   global $con;
 
-  $sth = $con->prepare('UPDATE language SET active = ? WHERE code = ?');
-  $sth->execute([$active, $code]);
+  try {
+    $sth = $con->prepare('UPDATE language SET active = ? WHERE code = ?');
+    $sth->execute([$active, $code]);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  } 
 
 } // end UpdateLanguage()
