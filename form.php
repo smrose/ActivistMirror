@@ -48,7 +48,7 @@ if (isset($_POST["page"])) {
 // Get the data to compose this page.
 
 $action = ($page < 8) ? 'form.php' : 'result.php';
-$question = GetQuestion($language, $page);
+$question = LocalString($language, QUESTIONS, $page);
 $answers = GetAnswers($language, $page);
 $next = LocalString($language, MESSAGES, NEXT);
 $qimage = LocalString(NULL, QIMAGE, $page);

@@ -9,31 +9,14 @@
  *
  * FUNCTIONS
  *
- *  ItemTypes        return a list of all the itemtypes
- *  GetRoles         return roles
- *  GetPatterns      return patterns
  *  Choose           select languages and item type
  *  NewString        present a form for adding a new string
- *  Locals           fetch strings of this type and language
- *  AllVerbiage      fetch verbiage in the argument language
  *  Error            fail in disgrace
  *  Translate        present the form for entering strings
  *  Absorb           absorb edited strings
- *  GetTranslators   return a list of users and the languages they support
- *  InsertLocal      insert a row into 'locals'
- *  UpdateLocal      update a row in 'locals'
- *  DeleteLocal      delete a row from 'locals'
- *  InsertVerbiage   insert a row into 'verbiage'
- *  UpdateVerbiage   update a row in 'verbiage'
- *  DeleteVerbiage   delete a row from 'verbiage'
- *  GetUsers         return array of all translators
  *  Translators      present a form for assigning translators
  *  Users            add user
  *  SetTranslators   absorb setting of translators
- *  InsertTranslator insert a translator record
- *  DeleteTranslator delete a translator record
- *  CreateString     create a new 'en' string in locals
- *  UpdateLanguage   set language.active
  *  Languages        offer a form for setting language.active
  *  ActiveLanguage   process form input from Languages()
  *
@@ -104,67 +87,6 @@
  */
 
 const VERBIAGE_T = 30;
-
-
-/* ItemTypes()
- *
- *  Return a list of all the itemtypes for which there is at least one value
- *  in the "locals" table. Plus, "verbiage."
- */
-
-function ItemTypes($itemtype_id = null) {
-  global $con;
-
-  $sql = 'SELECT *, count(*) FROM itemtypes i
- JOIN locals l ON i.itemtype_id = l.itemtype';
-  if(isset($itemtype_id))
-    $sql .= ' WHERE itemtype_id = ?';
-  $sql .= ' GROUP BY itemtype_id';
-  $sth = $con->prepare($sql);
-  if(isset($itemtype_id))
-    $sth->bind_param('i', $itemtype_id);
-  $sth->execute();
-  $res = $sth->get_result();
-  $itemtypes = $res->fetch_all();
-  $sth->close();
-  $itemtypes[] = [VERBIAGE_T, 'verbiage'];
-  return $itemtypes;
-
-} /* end ItemTypes() */
-
-
-/* GetRoles()
- *
- *  Return an array of roles as associative arrays with 'id_role' and
- *  'name' fields.
- */
-
-function GetRoles() {
-  global $con;
-
-  $sth = $con->prepare('SELECT id_role, name FROM roles ORDER BY id_role');
-  $sth->execute();
-  $res = $sth->get_result();
-  return($res->fetch_all(MYSQLI_ASSOC));
-  
-} /* end GetRoles() */
-
-
-/* GetPatterns()
- *
- *  Return an array of patterns as associative arrays with 'id' and
- *  'title' fields, ordered by title.
- */
-
-function GetPatterns() {
-  global $con;
-
-  $sth = $con->prepare('SELECT id, title FROM pattern ORDER BY title');
-  $sth->execute();
-  $res = $sth->get_result();
-  return($res->fetch_all(MYSQLI_ASSOC));
-  
-} /* end GetPatterns() */
 
 
 /* Choose()
@@ -301,68 +223,6 @@ type.</p>
 ";
 
 } // end NewString()
-
-
-/* Locals()
- *
- *  Fetch the locals for this itemtype and language.
- */
-
-function Locals($itemtype, $language) {
-  global $con;
-
-  $sql = 'SELECT localstring, local_id, object_id
- FROM locals
- WHERE itemtype = ? AND language = ?';
-  $sth = $con->prepare($sql);
-  $sth->bind_param('is', $itemtype, $language);
-  $sth->execute();
-  $res = $sth->get_result();
-  $locals = $res->fetch_all(MYSQLI_ASSOC);
-  $sth->close();
-  
-  foreach($locals as $local)
-    $r[$local['object_id']] = $local;
-  return $r;
-
-} /* end Locals() */
-
-
-/* AllVerbiage()
- *
- *  Return rows from 'verbiage' in the argument language. What we return
- *  is an array of arrays, sorted on role and pattern, with these fields:
- *
- *     vstring  string
- *        role  numeric role id
- *     pattern  numeric id
- *    rolename  roles.name
- *     patname  pattern.title
- *
- */
- 
-function AllVerbiage($language) {
-  global $con;
-
-  $sth = $con->prepare('SELECT vstring, role, pattern, r.name AS rolename,
-  p.title AS patname
- FROM verbiage v
-  JOIN roles r ON v.role = r.id_role
-  LEFT JOIN pattern p ON v.pattern = p.id 
- WHERE language = ?
- ORDER BY role, pattern');
-  $sth->bind_param('s', $language);
-  $sth->execute();
-  $res = $sth->get_result();
-  $verbiages = $res->fetch_all(MYSQLI_ASSOC);
-  foreach($verbiages as $verbiage) {
-    $k = $verbiage['role'] .
-      (isset($verbiage['pattern']) ? "_{$verbiage['pattern']}" : '');
-    $r[$k] = $verbiage;
-  }
-  return($r);
-  
-} /* end AllVerbiage() */
 
 
 /* Error()
@@ -592,216 +452,6 @@ function Absorb($opts) {
 } /* end Absorb() */
 
 
-/* GetTranslators()
- *
- *  Fetch rows from the 'translator' table, which maps userids to languages
- *  to represent who is authorized to perform translations for each language.
- *
- *  If a userid is provided, we return an array of their languages. If not
- *  we return an array keyed on userid to arrays of their languages.
- */
-
-function GetTranslators($userid = null) {
-  global $con;
-
-  $sql = 'SELECT tid, lcode
- FROM translator t
-  JOIN ltrans lt ON t.id = lt.tid';
-  if(isset($userid))
-    $sql .= ' WHERE userid = ?';
-  $sth = $con->prepare($sql);
-  if(isset($userid))
-    $sth->bind_param('i', $userid);
-  $sth->execute();
-  $res = $sth->get_result();
-  $values = $res->fetch_all();
-  
-  $translators = [];
-  
-  foreach($values as $value) {
-    $lcode = $value[1];
-    if(isset($userid))
-      $translators[] = $lcode;
-    else {
-      $uid = $value[0];
-      if(! array_key_exists($uid, $translators))
-        $translators[$uid] = [];
-      $translators[$uid][] = $lcode;
-    }
-  }
-  $sth->close();
-  return($translators);
-  
-} /* end GetTranslators() */
-
-
-/* InsertLocal()
- *
- *  Insert one record in locals.
- */
- 
-function InsertLocal($opt) {
-  global $con;
-
-  $sql = 'INSERT INTO locals (localstring, language, object_id, itemtype)
- VALUES(?,?,?,?)';
- $sth = $con->prepare($sql);
- $sth->bind_param('ssii',
-                  $opt['localstring'],
-                  $opt['language'],
-                  $opt['object_id'],
-                    $opt['itemtype']);
- $sth->execute();
- $sth->close();
-
-} /* end InsertLocal() */
-
-
-/* UpdateLocal()
- *
- *  Update one record in locals.
- */
- 
-function UpdateLocal($opt) {
-  global $con;
-
-  $sql = 'UPDATE locals SET localstring = ?, translator = ?
- WHERE object_id = ? AND itemtype = ? AND language = ?';
- $sth = $con->prepare($sql);
- $sth->bind_param('siiis',
-                  $opt['localstring'],
-                  $opt['translator'],
-                  $opt['object_id'],
-                  $opt['itemtype'],
-                  $opt['language']);
- $sth->execute();
- $sth->close();
-
-} /* end UpdateLocal() */
-
-
-/* DeleteLocal()
- *
- *  Delete one record from locals.
- */
- 
-function DeleteLocal($opt) {
-  global $con;
-
-  $sql = 'DELETE FROM locals
- WHERE object_id = ? AND itemtype = ? AND language = ?';
- $sth = $con->prepare($sql);
- $sth->bind_param('iis',
-                  $opt['object_id'],
-                    $opt['itemtype'],
-                    $opt['language']);
- $sth->execute();
- $sth->close();
-
-} /* end DeleteLocal() */
-
-
-/* InsertVerbiage()
- *
- *  Insert one record in 'verbiage'.
- */
- 
-function InsertVerbiage($opt) {
-  global $con;
-
-  $sql = 'INSERT INTO verbiage (vstring, language, role, pattern)
- VALUES(?,?,?,?)';
- $sth = $con->prepare($sql);
- $sth->bind_param('ssii',
-                  $opt['vstring'],
-                  $opt['language'],
-                  $opt['role'],
-                    $opt['pattern']);
- $sth->execute();
- $sth->close();
-
-} /* end InsertVerbiage() */
-
-
-/* UpdateVerbiage()
- *
- *  Update one record in 'verbiage'.
- */
- 
-function UpdateVerbiage($opt) {
-  global $con;
-
-  $sql = 'UPDATE verbiage SET vstring = ?, translator = ?
- WHERE role = ? AND language = ?';
-  if(isset($opt['pattern']))
-    $sql .= ' AND pattern = ?';
-  else
-    $sql .= ' AND pattern IS NULL';
-  $sth = $con->prepare($sql);
-  if(isset($opt['pattern']))
-    $sth->bind_param('siisi',
-                     $opt['vstring'],
-                     $opt['translator'],
-                     $opt['role'],
-                     $opt['language'],
-                     $opt['pattern']);
-  else
-    $sth->bind_param('siis',
-                     $opt['vstring'],
-                     $opt['translator'],
-                     $opt['role'],
-                     $opt['language']);
- $sth->execute();
- $sth->close();
-
-} /* end UpdateVerbiage() */
-
-
-/* DeleteVerbiage()
- *
- *  Delete one record from 'verbiage'.
- */
- 
-function DeleteVerbiage($opt) {
-  global $con;
-
-  $sql = 'DELETE FROM verbiage
- WHERE role = ? AND language = ?';
-  if(isset($opt['pattern']))
-    $sql .= ' AND pattern = ?';
-  else
-    $sql .= ' AND pattern IS NULL';
-  $sth = $con->prepare($sql);
-  if(isset($opt['pattern']))
-    $sth->bind_param('isi',
-                     $opt['role'],
-                     $opt['language'],
-                     $opt['pattern']);
-  else
-    $sth->bind_param('is',
-                     $opt['role'],
-                     $opt['language']);
- $sth->execute();
- $sth->close();
-
-} /* end DeleteVerbiage() */
-
-
-/* GetUsers()
- *
- *  Return a list of all the translators.
- */
-
-function GetUsers() {
-  global $con;
-  
-  if($r = $con->query('SELECT * FROM translator'))
-    $translators = $r->fetch_all(MYSQLI_ASSOC);
-  return($translators);
-
-} /* end GetUsers() */
-
-
 /* Translators()
  *
  *  Present a form to assign languages to users.
@@ -868,23 +518,12 @@ function Translators() {
  */
 
 function Users($userid = NULL, $super = NULL) {
-  global $con;
-
   if(isset($userid)) {
   
     // Create new user.
 
-    $super = is_null($super) ? 0 : 1;
-    $sth = $con->prepare('INSERT INTO translator(userid, super) VALUES(?, ?)');
-    $sth->bind_param('si', $userid, $super);
-    try {
-      $sth->execute();
-      print "<p class=\"alert\">Added user <code>$userid</code>.</p>\n";
-    } catch(Exception $e) {
-      $error = $e->getMessage();
-      print "<p class=\"alert\">$error</p>\n";
-    }
-    
+    print '<p class="alert">' . InsertUser($userid, $super) . "</p>\n";
+
   } else {
 
     // Solicit new user.
@@ -997,81 +636,6 @@ function SetTranslators() {
 } /* end SetTranslators() */
 
 
-/* InsertTranslator()
- *
- *  Insert a row into the translator table.
- */
- 
-function InsertTranslator($userid, $lcode) {
-  global $con;
-
-  $sql = 'INSERT INTO ltrans (tid, lcode) VALUES (?,?)';
-  $sth = $con->prepare($sql);
-  $sth->bind_param('is', $userid, $lcode);
-  $sth->execute();
-  $sth->close();
-
-} // end InsertTranslator()
-
-
-/* DeleteTranslator()
- *
- *  Delete a row from the translator table.
- */
- 
-function DeleteTranslator($userid, $lcode) {
-  global $con;
-
-  $sql = 'DELETE FROM translator WHERE userid = ? AND lcode = ?';
-  $sth = $con->prepare($sql);
-  $sth->bind_param('is', $userid, $lcode);
-  $sth->execute();
-  $sth->close();
-
-} // end DeleteTranslator()
-
-
-/* CreateString()
- *
- *  Create a new string.
- */
-
-function CreateString($itemtype) {
-  global $con;
-  
-  $sth = $con->prepare('SELECT max(object_id) FROM locals WHERE itemtype = ?');
-  $sth->bind_param('i', $itemtype);
-  $sth->execute();
-  $res = $sth->get_result();
-  $object_id = $res->fetch_column();
-  $object_id++;
-  
-  InsertLocal([
-    'localstring' => '',
-    'object_id' => $object_id,
-    'itemtype' => $itemtype,
-    'language' => 'en'
-  ]);
-  print "<p class=\"alert\">Inserted new string with itemtype $itemtype and object id $object_id</p>\n";
-  
-} // end CreateString()
-
-
-/* UpdateLanguage()
- *
- *  Set language.active for the argument language.
- */
-
-function UpdateLanguage($code, $active) {
-  global $con;
-
-  $sth = $con->prepare('UPDATE language SET active = ? WHERE code = ?');
-  $sth->bind_param('is', $active, $code);
-  $sth->execute();
-
-} // end UpdateLanguage()
-
-
 function Languages() {
   $languages = GetLanguages();
 
@@ -1121,8 +685,6 @@ strings are translated for the language.</p>
  */
 
 function ActiveLanguage() {
-  global $con;
-  
   $languages = GetLanguages();
 
   $count = 0;
@@ -1182,8 +744,9 @@ function ActiveLanguage() {
 
 // Main program ho!
 
-require "am.php";
-require "db.php";
+require 'am.php';
+require 'amt.php';
+require 'db.php';
 
 DataStoreConnect(); // connect to the Activist Mirror database
 
@@ -1256,21 +819,22 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
        * any other type: 'role' and 'pattern' are specified and must be
        * unique. */
 
-       $role = $_POST['role'];
-       $pattern = $_POST['pattern'];
-       if(!is_null(Verbiage($role, $pattern, 'en')))
-         Error("Verbiage entries must be unique across role and pattern");
-       else
-         InsertVerbiage([
-           'vstring' => '',
-           'role' => $role,
-           'pattern' => $pattern,
-           'language' => 'en'
-         ]);
-         print "<p class=\"alert\">Added a row to the <code>verbiage</code> table.</p>\n";
+      $role = $_POST['role'];
+      $pattern = $_POST['pattern'];
+      if(!is_null(Verbiage($role, $pattern, 'en')))
+        Error("Verbiage entries must be unique across role and pattern");
+      else {
+        InsertVerbiage([
+          'vstring' => '',
+          'role' => $role,
+          'pattern' => $pattern,
+          'language' => 'en'
+        ]);
+        print "<p class=\"alert\">Added a row to the <code>verbiage</code> table.</p>\n";
+      }
     } else {
        $itemtype = $_POST['itemtype'];
-       CreateString($itemtype);
+       print '<p class="alert">' . CreateString($itemtype) . "</p>\n";
     }
   } elseif($_POST['state'] == 'st') {
 

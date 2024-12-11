@@ -8,38 +8,31 @@
  *
  *  Constants and program logic for the Activist Mirror application.
  *
- * NOTES
- *
- *  A MySQL datastore is employed.
- *
- *  The application consists of eight multiple-choice questions, each
- *  with five choices, implemented as radio buttons, each on its own
- *  page. After the final question is answered, a results screen is
- *  generated and results are stored in the database. The answers
- *  determine which of four roles is displayed and which four of the
- *  twenty-two patterns is displayed and linked.
- *
  * FUNCTIONS
  *
- *  Debug()              debugging message to error log
- *  DataStoreConnect()   connect to the data store
- *  LocalString()        retrieve string or strings
- *  GetQuestion()        retrieve question text
- *  GetAnswers()         retrieve answer labels
- *  GetRecommended()     retrieve "recommended" string
- *  RecordSession()      record a session record
- *  SaveResponses()      record all responses for session
- *  ComputeRole()        compute top role
- *  ComputePatterns()    compute weight totals for each pattern
- *  GetTweaked()         fetch pattern.tweak_value values
- *  MatchPatterns()      store values in match_patterns table
- *  PatternNames()       fetch pattern names and ids in tweaked_total order
- *  TopPatterns()        fetch pattern data for the top patterns
- *  Mode()               DESKTOP or MOBILE
- *  Dev()                value of the 'dev' cookie; NULL if it doesn't exist
- *  Verbiage()           fetch a row from the verbiage table
- *  GetLanguages()       return the supported languages
- *  GetUser              return a 'translator' record
+ *  Debug              debugging message to error log
+ *  DataStoreConnect   connect to the data store
+ *  LocalString        retrieve string or strings
+ *  GetAnswers         retrieve answer labels
+ *  RecordSession      record a session record
+ *  SaveResponses      record all responses for session
+ *  ComputeRole        compute top role
+ *  ComputePatterns    compute weight totals for each pattern
+ *  GetTweaked         fetch pattern.tweak_value values
+ *  MatchPatterns      store values in match_patterns table
+ *  PatternNames       fetch pattern names and ids in tweaked_total order
+ *  TopPatterns        fetch pattern data for the top patterns
+ *  Mode               DESKTOP or MOBILE
+ *  Dev                value of the 'dev' cookie; NULL if it doesn't exist
+ *  Verbiage           fetch a row from the verbiage table
+ *  GetLanguages       return the supported languages
+ *  GetUser            return a 'translator' record
+ *  versions           ['count', 'version'] from sessions
+ *  times              [earliest, latest] Unix times
+ *  AddRolePat         augment sessions records with role and patterns
+ *  GetSessions        return sessions, filtered
+ *  DoDeletes          process session deletions
+ *  Download           perform a download
  */
 
 const MODE_THRESHOLD = 1000;
@@ -123,7 +116,7 @@ function Debug($text, $level) {
   if($debug >= $level) {
     error_log($text);
   }
-  return($text);
+  return $text;
 
 } // end Debug()
 
@@ -135,19 +128,19 @@ function Debug($text, $level) {
 
 function DataStoreConnect() {
   global $con;
-  include "db.php"; // database connection parameters
+  require_once 'db.php'; // database connection parameters
 
   // Open connection with db
 
-  $con = new mysqli($SERVER, $USER, $PASSWD, $DATABASE);
-
-  // Check connection
-
-  if ($con->connect_errno) {
-    printf("Failed to connect to MySQL: %s\n", $con->connect_error);
-    exit();
+  if(isset($con))
+    return;
+  try {
+    $con = new PDO(DSN, USER, PASSWORD);
+    $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+    $con->query("SET NAMES 'utf8'");
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
   }
-  $con->query("SET NAMES 'utf8'");
 
 } // end DataStoreConnect()
 
@@ -165,66 +158,61 @@ function DataStoreConnect() {
 function LocalString($language, $itemtype, $bottom, $top = NULL) {
   global $con;
   
+  $u = [$itemtype, $bottom];
+  
   if(isset($top)) {
+    $u[] = $top;
 
     // Multiple rows.
 
     $sql = 'SELECT localstring FROM locals WHERE itemtype = ? AND object_id BETWEEN ? AND ?';
     if(isset($language)) {
       $sql .= ' AND language = ?';
+      $u[] = $language;
     }
-    $sth = $con->prepare($sql);
-    if(isset($language)) {
-      $sth->bind_param('iiis', $itemtype, $bottom, $top, $language);
-    } else {
-      $sth->bind_param('iii', $itemtype, $bottom, $top);
+
+    try {
+      $sth = $con->prepare($sql);
+      $rv = $sth->execute($u);
+    } catch(PDOException $e) {
+      throw new PDOException($e->getMessage(), $e->getCode());
     }
-    $sth->execute();
-    $res = $sth->get_result();
-    $values = $res->fetch_all();
-    foreach($values as $value)
-      $text[] = $value[0];
-    $sth->close();
+    $rows = $sth->fetchAll(PDO::FETCH_ASSOC);
+    foreach($rows as $row)
+      $text[] = $row['localstring'];
     
   } else {
 
-    // Single row. query() is the better choice.
+    // Single row.
     
-    $sql = "SELECT localstring FROM locals WHERE itemtype = $itemtype AND object_id = $bottom";
-    
-    if(isset($language))
-      $sql .= " AND language = '$language'";
-
-    if($result = $con->query($sql)) {
-      $row = $result->fetch_row();
-      if(is_null($row)) {
-        Debug("LocalString($language,$itemtype,$bottom) found no value", 2);
-	if(isset($language) && $language != 'en') {
-	  // If we specified a language but found no string, return the 'en'.
-	  return LocalString('en', $itemtype, $bottom, $top);
-	}
-	$text = '';
-      } else {
-        $text = $row[0];
-      }
-    } else {
-        echo __FILE__ . ', line ' . __LINE__ . " query failed: " . $con->error . "\n";
+    $sql = 'SELECT localstring FROM locals WHERE itemtype = ? AND object_id = ?';
+    if(isset($language)) {
+      $sql .= ' AND language = ?';
+      $u[] = $language;
     }
+
+    try {
+      $sth = $con->prepare($sql);
+      $rv = $sth->execute($u);
+      $text = $sth->fetch();
+    } catch(PDOException $e) {
+      throw new PDOException($e->getMessage(), $e->getCode());
+    }
+
+    if(is_null($text)) {
+      Debug("LocalString($language,$itemtype,$bottom) found no value", 2);
+      if(isset($language) && $language != 'en') {
+      
+        // If we specified a language but found no string, return the 'en'.
+
+        return LocalString('en', $itemtype, $bottom);
+      }
+    } else
+      $text = $text[0];
   }
-  return($text);
+  return $text;
 
 } // end LocalString()
-
-
-/* GetQuestion()
- *
- *  Retrieve the right question for the page.
- */
-
-function GetQuestion($language, $page) {
-  return(LocalString($language, QUESTIONS, $page));
-
-} // end GetQuestion()
 
 
 /* GetAnswers()
@@ -234,20 +222,9 @@ function GetQuestion($language, $page) {
  */
 
 function GetAnswers($language, $page) {
-  return(LocalString($language, ANSWERS, 5 * $page - 4, 5 * $page));
+  return LocalString($language, ANSWERS, 5 * $page - 4, 5 * $page);
 
 } // end GetAnswers()
-
-
-/* GetRecommended()
- *
- *  Get 'recommended' string.
- */
-
-function GetRecommended($language) {
-  return(LocalString($language, MESSAGES, RECOMMENDED));
-  
-} // end GetRecommended()
 
 
 /* RecordSession()
@@ -272,21 +249,22 @@ function RecordSession($session) {
     $param[$column] = $value;
   $param['rando'] = mt_rand();
 
-  $sth = $con->prepare("INSERT INTO sessions(uid, language, `group`, project, prompt, dev, rando, version) VALUES(?, ?, ?, ?, ?, ?, ?, ?)");
-  $sth->bind_param('isssssis', $param['uid'], $param['language'],
-                   $param['group'], $param['project'], $param['prompt'],
-		   $param['dev'], $param['rando'], $param['version']);
-  $sth->execute();
-  $sth->close();
+  $sql = 'INSERT INTO sessions(uid, language, `group`, project, prompt, dev, rando, version) VALUES(?, ?, ?, ?, ?, ?, ?, ?)';
+
+  try {
+    $sth = $con->prepare($sql);
+    $sth->execute($param);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
   
   // no user input involved, no prepare() required
 
   $result = $con->query('SELECT session_id, rando
  FROM sessions
  ORDER BY session_id DESC LIMIT 1');
-  $row = $result->fetch_assoc();
-  $result->free();
-  return($row);
+  $row = $sth->fetch(PDO::FETCH_ASSOC);
+  return $row;
 
 } // end RecordSession()
 
@@ -301,25 +279,29 @@ function SaveResponses($language, $session_id, $SelectedQ) {
   global $con;
   $unanswered = 0;
 
-  $sth = $con->prepare("INSERT INTO responses(response_id, session_id, id_q, id_ans) VALUES(NULL, ?, ?, ?)");
-  $sth->bind_param('iii', $session_id, $i, $user_answer);
+  try {
+    $sth = $con->prepare("INSERT INTO responses(response_id, session_id, id_q, id_ans) VALUES(NULL, ?, ?, ?)");
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
 
   for($i = 1; $i < 9; $i++) {
     $index = $i - 1;
     $user_answer = $SelectedQ[$index];
 
     if($user_answer != "") {
-      if(! $sth->execute()) {
-        echo "DB error: couldn't insert response to question " . $i . "<br />"; 
-        echo "$query;<br />"; // DEBUG 4
+      $params = [$session_id, $i, $user_answer];
+      try {
+        $sth->execute($params);
+      } catch(PDOException $e) {
+        throw new PDOException($e->getMessage(), $e->getCode());
       }
     } else {
       $unanswered++;
     }
   } // end loop
 
-  $sth->close();
-  return($unanswered);
+  return $unanswered;
   
 } // end SaveResponses()
 
@@ -338,15 +320,22 @@ function ComputeRole($session_id, $SelectedQ) {
   
   $RoleTotals = array(1 => 0, 2 => 0, 3 => 0, 4 => 0);
 
-  $sth = $con->prepare('SELECT factor, id_role FROM role_factors WHERE id_q = ? AND position = ?');
-  $sth->bind_param('ii', $page, $qval);
-  $sth->bind_result($factor, $role);
+  try {
+    $sth = $con->prepare('SELECT factor, id_role FROM role_factors WHERE id_q = ? AND position = ?');
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
+
+  $params = [$page, $qval];
 
   for($page = 1; $page <= QCOUNT; $page++) { 
     $qval = $SelectedQ[$page-1]; 
-    $sth->execute();
-    $res = $sth->get_result();
-    $values = $res->fetch_all(); # expect 4 rows, 1 per role
+    try {
+      $sth->execute($params);
+      $values = $sth->fetchAll(PDO::FETCH_ASSOC); # expect 4 rows, 1 per role
+    } catch(PDOException $e) {
+      throw new PDOException($e->getMessage(), $e->getCode());
+    }
     
     foreach($values as $value) {
       $RoleTotals[$value[1]] += $value[0];
@@ -354,8 +343,6 @@ function ComputeRole($session_id, $SelectedQ) {
     }
   } // end loop on pages
 
-  $sth->close();
-  
   // Break ties.
   
   $max = 0; // high water mark for scores
@@ -382,24 +369,30 @@ function ComputeRole($session_id, $SelectedQ) {
 
   // Save the per-role totals to the match_role table, 4 rows.
 
-  $sth = $con->prepare('INSERT INTO match_roles(match_role_id, session_id, role_id, total) VALUES(NULL, ?, ?, ?)');
-  $sth->bind_param('iii', $session_id, $role, $rt);
+  try {
+    $sth = $con->prepare('INSERT INTO match_roles(match_role_id, session_id, role_id, total) VALUES(NULL, ?, ?, ?)');
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
 
   $max = 0;
   for($role = 1; $role <= 4; $role++) {
     $rt = $RoleTotals[$role];
-    $sth->execute();
+    $params = [$session_id, $role, $rt];
+    try {
+      $sth->execute($params);
+    } catch(PDOException $e) {
+      throw new PDOException($e->getMessage(), $e->getCode());
+    }
     if($RoleTotals[$role] > $max) {
       $max = ($RoleTotals[$role]);
       $toprole = $role;
     }
   } // end loop
   
-  $sth->close();
-  
   Debug("Highest (role $toprole): $RoleTotals[$toprole]", 1);
 
-  return($toprole);
+  return $toprole;
   
 } // end ComputeRole()
 
@@ -414,7 +407,7 @@ function ComputeRole($session_id, $SelectedQ) {
  *     ans text,       -- question answers, in English
  *     id_ans INTEGER, -- per-pattern, per-answer, 1..5
  *     weight INTEGER  -- values 2..9
- *   )
+ *   );
  *
  *  is used to select patterns to associate with a session. We sum the
  *  weights associated with each of this user's answers for each
@@ -426,27 +419,35 @@ function ComputePatterns($SelectedQ) {
   global $con;
 
   $PatternTotals = Array();
-  for($i = 1; $i <= PATCOUNT; $i++) { $PatternTotals[$i] = 0; }
+  for($i = 1; $i <= PATCOUNT; $i++)
+    $PatternTotals[$i] = 0;
   
-  $sth = $con->prepare('SELECT id_p, weight FROM pattern_weights WHERE id_q = ? AND id_ans = ?');
-  $sth->bind_param('ii', $question, $x);
+  try {
+    $sth = $con->prepare('SELECT id_p, weight FROM pattern_weights WHERE id_q = ? AND id_ans = ?');
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
   
   // Loop on questions.
   
   for($question = 1; $question <= QCOUNT; $question++) {
     $id_ans = $SelectedQ[$question-1]; // 1..5
     $x = ($question-1) * 5 + $id_ans; // pattern_weights.id_ans
-    $sth->execute();
-    $result = $sth->get_result();
-    $weights = $result->fetch_all();
-    foreach($weights as $weight) {
-      $PatternTotals[$weight[0]] += $weight[1];
+    $params = [$question, $x];
+    try {
+      $sth->execute($params);
+    } catch(PDOException $e) {
+      throw new PDOException($e->getMessage(), $e->getCode());
     }
+    $weights = $sth->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach($weights as $weight)
+      $PatternTotals[$weight[0]] += $weight[1];
+
   } // end loop on questions
 
   Debug("\$PatternTotals = " . print_r($PatternTotals, 1), 3);
-  $sth->close();
-  return($PatternTotals);
+  return $PatternTotals;
   
 } // end ComputePatterns()
 
@@ -460,22 +461,25 @@ function ComputePatterns($SelectedQ) {
  *    title varchar(60),  -- e.g. "Public Agenda"
  *    tweak_value float,  -- .0038028 to .00526316
  *    rpat int(11)        -- pattern number
- *   )
+ *   );
  */
 
 function GetTweaked() {
   global $con;
 
   $tweak_values = array();
-  $sth = $con->prepare('SELECT id, tweak_value FROM pattern');
-  $sth->execute();
-  $res = $sth->get_result();
-  $values = $res->fetch_all();
-  foreach($values as $value) {
-    $tweak_values[$value[0]] = $value[1];
+  try {
+    $sth = $con->prepare('SELECT id, tweak_value FROM pattern');
+    $sth->execute();
+    $values = $sth->fetchAll(PDO::FETCH_ASSOC);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
   }
-  $sth->close();
-  return($tweak_values);
+  
+  foreach($values as $value)
+    $tweak_values[$value['id']] = $value['tweak_value'];
+
+  return $tweak_values;
   
 } // end GetTweaked()
 
@@ -496,17 +500,23 @@ function GetTweaked() {
 function MatchPatterns($session_id, $PatternTotals, $tweaked) {
   global $con;
   
-  $sth = $con->prepare("INSERT INTO match_patterns(match_pattern_id, session_id, pattern_id, total, tweaked_total) VALUES (NULL, ?, ?, ?, ?)");
-  $sth->bind_param('iiid', $session_id, $pattern, $pt, $tt);
+  try {
+    $sth = $con->prepare('INSERT INTO match_patterns(match_pattern_id, session_id, pattern_id, total, tweaked_total) VALUES (NULL, ?, ?, ?, ?)');
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
 
   for($pattern = 1; $pattern <= PATCOUNT; $pattern++) {
     $pt = $PatternTotals[$pattern];
     $tt = $tweaked[$pattern];
-    $sth->execute();
+    $params = [$session_id, $pattern, $pt, $tt];
+    try {
+      $sth->execute($params);
+    } catch(PDOException $e) {
+      throw new PDOException($e->getMessage(), $e->getCode());
+    }
     
   } // end loop on patterns
-
-  $sth->close();
 
 } // end MatchPatterns()
 
@@ -534,11 +544,18 @@ function TopPatterns($patnos, $language) {
  WHERE language = ? AND
   itemtype IN (' . PATTERN_TITLES . ',' . PATTERN_LINKS . ')
   AND object_id IN (' . $patset . ')';
-  $sth = $con->prepare($sql);
-  $sth->bind_param('s', $language);
-  $sth->execute();
-  $res = $sth->get_result();
-  $rows = $res->fetch_all();
+
+  try {
+    $sth = $con->prepare($sql);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
+    try {
+    $sth->execute(['language']);
+    } catch(PDOException $e) {
+      throw new PDOException($e->getMessage(), $e->getCode());
+    }
+  $rows = $sth->fetchAll();
   
   foreach($rows as $row)
     if($row[2] == PATTERN_TITLES) {
@@ -549,12 +566,15 @@ function TopPatterns($patnos, $language) {
 
   # Fetch pattern.rpat to compute paths to card images.
 
-  $sth = $con->prepare("SELECT id, rpat
- FROM pattern
- WHERE id IN ($patset)");
-  $sth->execute();
-  $res = $sth->get_result();
-  $rows = $res->fetch_all();
+  try {
+    $sth = $con->prepare("SELECT id, rpat FROM pattern WHERE id IN ($patset)");
+    $sth->execute();
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
+  
+  $rows = $sth->fetchAll();
+
   foreach($rows as $row)
     foreach(['image', 'text'] as $type) {
       $file = "cards/$language/$type/100/{$row[1]}.jpg";
@@ -562,7 +582,7 @@ function TopPatterns($patnos, $language) {
         $file = "cards/en/$type/100/{$row[1]}.jpg";
       $tops[$index[$row[0]]]['card'][$type] = $file;
     }
-  return($tops);
+  return $tops;
 
 } // end TopPatterns()
 
@@ -575,7 +595,7 @@ function TopPatterns($patnos, $language) {
 function Mode() {
   global $screen_width;
 
-  return(($screen_width >= MODE_THRESHOLD) ? DESKTOP : MOBILE);
+  return ($screen_width >= MODE_THRESHOLD) ? DESKTOP : MOBILE;
 
 } // end Mode()
 
@@ -587,9 +607,9 @@ function Mode() {
 
 function Dev() {
   if(isset($_COOKIE['dev'])) {
-    return($_COOKIE['dev']);
+    return $_COOKIE['dev'];
   } else {
-    return(null);
+    return null;
   }  
 } /* end Dev() */
 
@@ -616,15 +636,21 @@ function Verbiage($role, $pattern, $language) {
 
   $sql = "SELECT vstring FROM verbiage WHERE role = ? AND language = ? AND pattern ";
   $sql .= " = ?";
-  $sth = $con->prepare($sql);
-  $sth->bind_param('isi', $role, $language, $pattern);
-  $sth->execute();
-  $res = $sth->get_result();
-  $v = $res->fetch_row();
+  try {
+    $sth = $con->prepare($sql);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
+    try {
+    $sth->execute([$role, $language, $pattern]);
+    } catch(PDOException $e) {
+      throw new PDOException($e->getMessage(), $e->getCode());
+    }
+  $v = $sth->fetch();
   if(isset($v))
-    return($v[0]);
+    return $v[0];
   elseif($language != 'en')
-    return(Verbiage($role, $pattern, 'en'));
+    return Verbiage($role, $pattern, 'en');
 
 } /* end Verbiage() */
 
@@ -652,17 +678,24 @@ function GetLanguages($code = null) {
  . (isset($code) ? ' AND code = ?' : '')
  . ' GROUP BY language ORDER BY description';
 
-  $sth = $con->prepare($sql);
+  try {
+    $sth = $con->prepare($sql);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
+  $params = (isset($code)) ? [$code] :[];
+  try {
+    $sth->execute($params);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
+
   if(isset($code))
-    $sth->bind_param('s', $code);
-  $sth->execute();
-  $res = $sth->get_result();
-  if(isset($code)) {
-    return($res->fetch_assoc());
-  } else {
-    while($language = $res->fetch_assoc())
+    return $sth->fetch(PDO::FETCH_ASSOC);
+  else {
+    while($language = $sth->fetch(PDO::FETCH_ASSOC))
       $languages[$language['code']] = $language;
-    return($languages);
+    return $languages;
   }
   
 } /* end GetLanguages() */
@@ -684,11 +717,343 @@ function GetLanguages($code = null) {
 function GetUser($username) {
   global $con;
 
-  $sth = $con->prepare('SELECT * FROM translator WHERE userid = ?');
-  $sth->bind_param('s', $username);
-  $sth->execute();
-  if($r = $sth->get_result())
-    $translator = $r->fetch_assoc();
-  return($translator);
+  try {
+    $sth = $con->prepare('SELECT * FROM translator WHERE userid = ?');
+    $sth->execute([$username]);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), $e->getCode());
+  }
+  $translator = $sth->fetch(PDO::FETCH_ASSOC);
+  return $translator;
 
 } /* end GetUser() */
+
+
+/* versions()
+ *
+ *  Return ['count', 'version'] arrays for every value of sessions.version.
+ */
+
+function versions() {
+  global $con;
+
+  try {
+    $sth = $con->prepare('SELECT version, count(*) AS count
+ FROM sessions
+ GROUP BY version');
+    $sth->execute();
+    $them = $sth->fetchAll(PDO::FETCH_ASSOC);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
+  return $them;
+
+} // end versions()
+
+
+/* times()
+ *
+ *  Return a 2-element array with earliest and latest values of
+ *  sessions.uid, which is a Unix timestamp.
+ */
+
+function times() {
+  global $con;
+  
+  try {
+    $sth = $con->prepare('SELECT max(uid) AS latest, min(uid) AS earliest
+ FROM sessions');
+    $sth->execute();
+    $them = $sth->fetch(PDO::FETCH_ASSOC);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
+  return $them;
+  
+} // end times()
+
+
+/* AddRolePat()
+ *
+ * To $sessions, for each session add:
+ *   1. name of top role as 'role'
+ *   2. names and IDs of top patterns as 'patterns', an array of TOPPATS
+ *       arrays with 'pattern_id' and 'title'  fields
+ *   3. the title and id of the top-scoring pattern for which a 'verbiage'
+ *       row exists as 'discussed' and 'discussed_id' or 'none' and 0
+ */
+
+function AddRolePat(&$sessions) {
+  global $con;
+
+  try {
+    $sth = $con->prepare('SELECT name, role_id
+ FROM match_roles mr
+  JOIN roles r ON role_id = id_role
+ WHERE session_id = ?
+ ORDER BY total DESC LIMIT 1');
+
+    $sth2 = $con->prepare('SELECT p.id AS pattern_id, p.title
+ FROM match_patterns mp
+  JOIN pattern p ON mp.pattern_id = p.id
+ WHERE session_id = ?
+ ORDER BY tweaked_total DESC LIMIT 4');
+
+    $sth3 = $con->prepare('SELECT pattern, p.title
+ FROM verbiage v JOIN pattern p ON v.pattern = p.id
+ WHERE role = ? AND pattern IN (?,?,?,?)');
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
+    
+  foreach($sessions as $id => $session) {
+    $session_id = $session['session_id'];
+    $param = [$session_id];
+    $sth->execute($param);
+    $role = $sth->fetch();
+    $toprole = $role[0];
+    $toproleid = $role[1];
+    $sessions[$id]['role'] = $toprole;
+
+    $sth2->execute($param);
+    $patterns = $sth2->fetchAll(PDO::FETCH_ASSOC);
+    for($i = 0; $i < TOPPATS; $i++)
+      $patid[$i] = $patterns[$i]['pattern_id'];
+    $sessions[$id]['patterns'] = $patterns;
+
+    $param = [$toproleid, $patid[0], $patid[1], $patid[2], $patid[3]];
+    $sth3->execute($param);
+    if($sth3->rowCount()) {
+      $v = $sth3->fetchAll();
+      
+      if($sth3->rowCount() == 1) {
+
+        // One verbiage row matches.
+	
+        $sessions[$id]['discussed'] = $v[0][1];
+        $sessions[$id]['discussed_id'] = $v[0][0];
+
+      } else {
+
+        /* There are multiple verbiage rows for this role and pattern set.
+         * We want the row corresponding to the highest-scoring pattern. */
+      
+        $found = false;
+        foreach($patid as $pid) {
+          foreach($v as $tv) {
+	    if($tv[0] == $pid) {
+	      $sessions[$id]['discussed'] = $tv[1];
+	      $sessions[$id]['discussed_id'] = $tv[0];
+	      $found = true;
+	      break;
+	    }
+          }
+	  if($found)
+	    break;
+        } // end loop on patterns
+      }
+    } else {
+
+      // There is no verbiage for this role and pattern set.
+      
+      $sessions[$id]['discussed_title'] = 'none';
+      $sessions[$id]['discussed_id'] = 0;
+    }
+  } // end loop on sessions
+
+} // end AddRolePat()
+
+
+/* GetSessions()
+ *
+ *  Fetch a filtered set of submissions.
+ *
+ *  First, we build $filter[], with selected query conditions (if any).
+ *
+ *  From $filter, we build $conditions, with SQL subclauses for a WHERE
+ *  clause.
+ *
+ *  $conditions is used to build and execute an SQL statement with columns
+ *  from 'sessions'.
+ *
+ *  A second query adds role.name using tables match_roles and roles.
+ *
+ *  A third query adds the top pattern ids and titles for the session.
+ */
+
+function GetSessions() {
+  global $con;
+
+  # By default, developer submissions are not included.
+
+  if(!isset($_POST['dev'])) // "include developer submissions"
+    $filter['dev'] = 1;
+
+  if(! isset($_POST['all'])) {
+
+    # A filter on dates and/or versions may apply.
+    
+    if(isset($_POST['version']) && !in_array('all', $_POST['version']))
+      foreach($_POST['version'] as $version)
+        if($version != 'all')
+          $filter['version'][] = $version;
+
+    # Determine if the date limits have been changed.
+
+    foreach(['earliest', 'latest'] as $limit) {
+      $d = UnixToDate($_POST[$limit]); # unix time for $limit session
+      $p['year'] = $_POST["${limit}_year"];
+      $p['month'] = $_POST["${limit}_month"];
+      $p['day'] = $_POST["${limit}_day"];
+      if($d['year'] != $p['year'] ||
+         $d['month'] != $p['month'] ||
+         $d['day'] != $p['day'])
+         
+        // filter on $limit
+
+        $filter[$limit] = gmmktime(0, 0, 0, $p['month'], $p['day'], $p['year']);
+    }
+  } // end building $filter
+  
+  if(isset($filter) && count($filter)) {
+
+    // dev
+
+    if(isset($filter['dev'])) // exclude developer submissions
+      $conditions['dev'] = 'dev IS NULL';
+
+    // uid range
+    
+    if(isset($filter['earliest']) && isset($filter['latest']))
+      $conditions['uid'] = "uid BETWEEN {$filter['earliest']} AND {$filter['latest']}";
+    elseif(isset($filter['earliest']))
+      $conditions['uid'] = "uid >= {$filter['earliest']}";
+    elseif(isset($filter['latest']))
+      $conditions['uid'] = "uid <= {$filter['latest']}";
+    
+    // versions
+
+    if(isset($filter['version']))
+      if(sizeof($filter['version']) > 1)
+        $conditions['version'] = 'version IN ("' .
+	  implode('","', $filter['version']) . '")';
+      else
+        $conditions['version'] = "version = '{$filter['version']}'";
+	
+  } // end building $conditions
+  
+  $sql = 'SELECT s.*
+ FROM sessions s';
+  if(isset($conditions) && count($conditions)) {
+    $sql .= ' WHERE ';
+    $first = true;
+    foreach($conditions as $condition) {
+      if(! $first)
+        $sql .= ' AND ';
+      $sql .= $condition;
+      $first = false;
+    }
+  }
+  $sql .= ' ORDER BY uid';
+  Debug($sql, 2);
+  try {
+    $sth = $con->prepare($sql);
+    $sth->execute();
+    $sessions = $sth->fetchAll(PDO::FETCH_ASSOC);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
+  AddRolePat($sessions);
+  return $sessions;
+  
+} // end GetSessions()
+
+
+/* DoDeletes()
+ *
+ *  Process requested session deletions.
+ */
+
+function DoDeletes() {
+  global $con;
+  
+  $deletes = [];
+
+  foreach($_POST as $id => $value)
+    if(preg_match('/^\d+$/', $id, $matches))
+      $deletes[] = $id;
+      
+  if(!count($deletes)) {
+    print "<p>No sessions selected for deletion.</p>\n";
+    exit;
+  }
+  $sql = 'DELETE FROM sessions WHERE session_id in (' .
+    implode(',', $deletes) . ')';
+  try {
+    $sth = $con->prepare($sql);
+    $sth->execute();
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
+  print '<p>Deleted ' . count($deletes) . " sessions.</p>\n";
+
+} // end DoDeletes()
+
+
+/* Download()
+ *
+ *  Download all the sessions for which the ID is in the form.
+ */
+ 
+function Download() {
+  global $con;
+
+  ob_start();
+
+  # Build a list of session_id values from the form.
+
+  $ids = implode(',', $_POST['id']);
+
+  # Fetch those sessions plus the top role for each
+
+  $sql = "SELECT s.session_id, uid, language, version, `group`, project, prompt, suggestion, dev AS developer
+  FROM sessions s
+   JOIN match_roles mr ON s.session_id = mr.session_id
+   JOIN roles r ON mr.role_id = id_role
+ WHERE s.session_id IN ($ids)
+ GROUP BY s.session_id
+ ORDER BY uid";
+  $sth = $con->prepare($sql);
+  $sth->execute();
+  $sessions = $sth->fetchAll(PDO::FETCH_ASSOC);
+  AddRolePat($sessions);
+
+  # Create the CSV content.
+
+  $fh = fopen('php://output', 'w');
+  $fields = [
+    'sessionid',
+    'timestamp', 'language', 'version', 'group', 'project', 'prompt',
+    'suggestion', 'developer', 'role', 'discussed', 'discussed_id',
+    'pattern1', 'pid1', 'pattern2', 'pid2', 'pattern3', 'pid3', 'pattern4',
+    'pid4'
+  ];
+  fputcsv($fh, $fields, "\t");
+
+  foreach($sessions as $session) {
+    $i = 1;
+    foreach($session['patterns'] as $pattern) {
+      $session["pattern$i"] = $pattern['title'];
+      $session["pid$i"] = $pattern['pattern_id'];
+      $i++;
+    }
+    unset($session['patterns']);
+    fputcsv($fh, $session, "\t");
+  }
+  fclose($fh);
+  $csv = 'AM-sessions.' . date('Y.m.d') . '.csv';
+  header('Content-Type: text/csv'); 
+  header('Content-Disposition: attachment; filename="' . $csv . '";'); 
+  exit();
+  
+} // end Download()
