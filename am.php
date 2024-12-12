@@ -194,12 +194,12 @@ function LocalString($language, $itemtype, $bottom, $top = NULL) {
     try {
       $sth = $con->prepare($sql);
       $rv = $sth->execute($u);
-      $text = $sth->fetch();
+      $text = $sth->fetch(PDO::FETCH_COLUMN);
     } catch(PDOException $e) {
       throw new PDOException($e->getMessage(), $e->getCode());
     }
 
-    if(is_null($text)) {
+    if(!$text) {
       Debug("LocalString($language,$itemtype,$bottom) found no value", 2);
       if(isset($language) && $language != 'en') {
       
@@ -207,8 +207,7 @@ function LocalString($language, $itemtype, $bottom, $top = NULL) {
 
         return LocalString('en', $itemtype, $bottom);
       }
-    } else
-      $text = $text[0];
+    }
   }
   return $text;
 
@@ -260,7 +259,7 @@ function RecordSession($session) {
   
   // no user input involved, no prepare() required
 
-  $result = $con->query('SELECT session_id, rando
+  $sth = $con->query('SELECT session_id, rando
  FROM sessions
  ORDER BY session_id DESC LIMIT 1');
   $row = $sth->fetch(PDO::FETCH_ASSOC);
@@ -646,9 +645,9 @@ function Verbiage($role, $pattern, $language) {
     } catch(PDOException $e) {
       throw new PDOException($e->getMessage(), $e->getCode());
     }
-  $v = $sth->fetch();
-  if(isset($v))
-    return $v[0];
+  $v = $sth->fetch(PDO::FETCH_COLUMN);
+  if($v)
+    return $v;
   elseif($language != 'en')
     return Verbiage($role, $pattern, 'en');
 

@@ -18,10 +18,12 @@ $aversion = date('H:i:s d/m/Y', filectime('.git/index'));
 
 DataStoreConnect();
 
-// We support passing a set of query parameters forward.
+/* We support passing a set of query parameters forward. That allows a URL
+ * to be published that will pre-populate those parameters in the form
+ * on "pagetwo". */
 
 $qps = '';
-foreach(['language', 'prompt', 'group', 'project', 'version'] as $qp) {
+foreach(['prompt', 'group', 'project', 'version'] as $qp) {
   if(isset($_REQUEST[$qp])) {
     $qps .= strlen($qps) ? '&' : '';
     $qps .= "$qp={$_REQUEST[$qp]}";
@@ -30,11 +32,10 @@ foreach(['language', 'prompt', 'group', 'project', 'version'] as $qp) {
 
 /// set headers and flags based on language
  
-if(isset($_GET["language"])) {     // if language var passed via url
+if(isset($_GET["language"]))     // if language var passed via url
   $language = $_GET["language"];
-} else {
+else
   $language = "en";
-}
 
 // build a popup menu, initially hidden, to allow users to select a language
 
@@ -42,7 +43,7 @@ $langs = GetLanguages();
 $langsel = "<select name=\"language\" id=\"langsel\">\n";
 foreach($langs as $lang) {
   if($lang['active']) {
-    $selected = ($lang['code'] == 'en') ? ' selected' : '';
+    $selected = ($lang['code'] == $language) ? ' selected' : '';
     $langsel .= " <option value=\"{$lang['code']}\"$selected>{$lang['description']}</option>\n";
   }
 }
@@ -92,6 +93,7 @@ $uid = time();
             url += '?' + qps
         location = document.location
         location.assign(url)
+
     } // end pagetwo()
 
     /* sl()
@@ -106,7 +108,8 @@ $uid = time();
 
     /* nl()
      *
-     *  Called when a language is selected from the popup to set the location.
+     *  Called when a language is selected from the popup to set the
+     *  location to include a 'language' query parameter.
      */
 
      function nl(event) {
