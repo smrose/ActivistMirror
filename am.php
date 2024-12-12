@@ -33,6 +33,7 @@
  *  GetSessions        return sessions, filtered
  *  DoDeletes          process session deletions
  *  Download           perform a download
+ *  UnixToDate         [year, month, day] from a Unix time
  */
 
 const MODE_THRESHOLD = 1000;
@@ -248,13 +249,17 @@ function RecordSession($session) {
     $param[$column] = $value;
   $param['rando'] = mt_rand();
 
-  $sql = 'INSERT INTO sessions(uid, language, `group`, project, prompt, dev, rando, version) VALUES(?, ?, ?, ?, ?, ?, ?, ?)';
+  $sql = 'INSERT INTO sessions(uid, language, `group`, project, prompt, dev, version, rando) VALUES(:uid, :language, :group, :project, :prompt, :dev, :version, :rando)';
 
   try {
     $sth = $con->prepare($sql);
+  } catch(PDOException $e) {
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
+  }
+  try {
     $sth->execute($param);
   } catch(PDOException $e) {
-    throw new PDOException($e->getMessage(), $e->getCode());
+    throw new PDOException($e->getMessage(), (int) $e->getCode());
   }
   
   // no user input involved, no prepare() required
@@ -550,7 +555,7 @@ function TopPatterns($patnos, $language) {
     throw new PDOException($e->getMessage(), $e->getCode());
   }
     try {
-    $sth->execute(['language']);
+      $sth->execute(['language']);
     } catch(PDOException $e) {
       throw new PDOException($e->getMessage(), $e->getCode());
     }
@@ -953,7 +958,7 @@ function GetSessions() {
       $first = false;
     }
   }
-  $sql .= ' ORDER BY uid';
+  $sql .= ' ORDER BY session_id';
   Debug($sql, 2);
   try {
     $sth = $con->prepare($sql);
@@ -1060,3 +1065,30 @@ function Download() {
   exit();
   
 } // end Download()
+
+
+/* UnixToDate()
+ *
+ *  [year, month, day] from a Unix time.
+ */
+ 
+function UnixToDate($date) {
+    $date = date('Y-n-j', $date);
+    preg_match('/^(\d+)-(\d+)-(\d+)$/', $date, $matches);
+    return([
+            'year' => $matches[1],
+            'month' => $matches[2],
+            'day' => $matches[3]
+           ]);
+
+} // end UnixToDate()
+
+
+
+
+
+
+
+
+
+

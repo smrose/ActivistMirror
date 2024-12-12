@@ -10,7 +10,6 @@
  * FUNCTIONS
  *
  *  versions     for each sessions.version value, return ['count', 'version']
- *  UnixToDate   [year, month, day] from a Unix time
  *  TimeMenus    create menu elements for selecting a date range
  *  VersionMenus create a versions menu
  *  ShowSessions table of session data
@@ -20,18 +19,6 @@
 $debug = 2;
 require "am.php";
 $aversion = date('H:i:s d/m/Y', filectime('.git/index'));
-
-
-function UnixToDate($date) {
-    $date = date('Y-n-j', $date);
-    preg_match('/^(\d+)-(\d+)-(\d+)$/', $date, $matches);
-    return([
-            'year' => $matches[1],
-            'month' => $matches[2],
-            'day' => $matches[3]
-           ]);
-
-} // end UnixToDate()
 
 
 /* TimeMenus()
