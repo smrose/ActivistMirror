@@ -676,11 +676,10 @@ function GetLanguages($code = null) {
   global $con;
 
   $sql = 'SELECT code, description, active, COUNT(*) AS count
- FROM locals l
-  JOIN language la ON l.language = la.code
- WHERE language IS NOT NULL'
+ FROM language la
+  LEFT JOIN locals l ON l.language = la.code'
  . (isset($code) ? ' AND code = ?' : '')
- . ' GROUP BY language ORDER BY description';
+ . ' GROUP BY code ORDER BY description';
 
   try {
     $sth = $con->prepare($sql);
