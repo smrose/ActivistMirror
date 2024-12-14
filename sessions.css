@@ -1,5 +1,6 @@
 body {
     background-image: url("img/SummerWinter1.png");
+    background-attachment: fixed;
     font-family: "Inria Sans", sans-serif;
 }
 #brand {

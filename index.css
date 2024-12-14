@@ -1,5 +1,6 @@
 body {
     background-image: url("img/SummerWinter.png");
+    background-attachment: fixed;
     font-family: Inter, sans-serif;
 }
 h1 {

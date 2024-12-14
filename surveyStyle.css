@@ -4,6 +4,7 @@ body {
     font-family: "Inria Sans", sans-serif;
     font-weight: 400;
     background-image: url("img/SummerWinter1.png");
+    background-attachment: fixed;
 }
 #h {
     padding: 1.5vw;
