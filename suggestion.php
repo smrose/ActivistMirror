@@ -57,7 +57,9 @@ $session_id = $match[1];
 DataStoreConnect();
   
 try {
-  $res = $con->query("SELECT count(*) AS count, rando FROM sessions WHERE session_id = $session_id");
+  $sth = $con->query("SELECT count(*) AS count, rando
+ FROM sessions
+ WHERE session_id = $session_id");
 } catch(Exception $e) {
 
   // Server error.
@@ -66,7 +68,7 @@ try {
   echo json_encode(['error' => $e->getMessage()]);
   exit();
 }
-$session = $res->fetch_assoc();
+$session = $sth->fetch(PDO::FETCH_ASSOC);
 
 if($session['count'] != 1) {
 
@@ -92,5 +94,4 @@ $suggestion = $data['suggestion'];
 # Update the record.
 
 $sth = $con->prepare('UPDATE sessions SET suggestion = ? WHERE session_id = ?');
-$sth->bind_param('si', $suggestion, $session_id);
-$sth->execute();
+$sth->execute([$suggestion, $session_id]);
