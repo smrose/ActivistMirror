@@ -136,9 +136,13 @@ function DataStoreConnect() {
   if(isset($con))
     return;
   try {
-    $con = new PDO(DSN, USER, PASSWORD);
+    if(defined('USER'))
+      $con = new PDO(DSN, USER, PASSWORD);
+    else
+      $con = new PDO(DSN);
     $con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
-    $con->query("SET NAMES 'utf8'");
+    if(substr(DSN, 0, 5) == 'mysql')
+      $con->query("SET NAMES 'utf8'");
   } catch(PDOException $e) {
     throw new PDOException($e->getMessage(), (int) $e->getCode());
   }
