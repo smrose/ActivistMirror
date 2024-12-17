@@ -1,4 +1,6 @@
 db.php
+db-mysql.php
+db-sqlite.php
 RCS
 .vscode
 .htaccess

@@ -447,7 +447,7 @@ function ComputePatterns($SelectedQ) {
     } catch(PDOException $e) {
       throw new PDOException($e->getMessage(), $e->getCode());
     }
-    $weights = $sth->fetchAll(PDO::FETCH_ASSOC);
+    $weights = $sth->fetchAll();
 
     foreach($weights as $weight)
       $PatternTotals[$weight[0]] += $weight[1];
@@ -559,7 +559,7 @@ function TopPatterns($patnos, $language) {
     throw new PDOException($e->getMessage(), $e->getCode());
   }
     try {
-      $sth->execute(['language']);
+      $sth->execute([$language]);
     } catch(PDOException $e) {
       throw new PDOException($e->getMessage(), $e->getCode());
     }
