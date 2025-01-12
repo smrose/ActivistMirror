@@ -28,6 +28,7 @@
  *  DeleteTranslator   delete a translator record
  *  CreateString       create a new 'en' string in locals
  *  UpdateLanguage     set language.active
+ *  DeleteStrings      delete a set of strings of the argument type and ids
  */
 
 
@@ -337,9 +338,14 @@ function UpdateVerbiage($opt) {
 function DeleteVerbiage($opt) {
   global $con;
 
-  $params = [$opt['role'], $opt['language']];
+  $params = [$opt['role']];
+
   $sql = 'DELETE FROM verbiage
- WHERE role = ? AND language = ?';
+ WHERE role = ?';
+  if(isset($opt['language'])) {
+    $sql .= ' AND language = ?';
+    $params[] = $opt['language'];
+  }
   if(isset($opt['pattern'])) {
     $sql .= ' AND pattern = ?';
     $params[] = $opt['pattern'];
@@ -477,3 +483,41 @@ function UpdateLanguage($code, $active) {
   } 
 
 } // end UpdateLanguage()
+
+
+/* DeleteStrings()
+ *
+ *  Delete a set of strings of the argument type with the argument ids.
+ */
+
+function DeleteStrings($itemtype, $ids) {
+  global $con;
+  
+  if($itemtype == VERBIAGE_T) {
+    foreach($ids as $id) {
+      if(preg_match('/^([0-9]+)_([0-9]+)$/', $id, $matches)) {
+	$role = $matches[1];
+        $pattern = $matches[2];
+	DeleteVerbiage([
+	  'role' => $role,
+	  'pattern' => $pattern
+	]);
+      } else {
+        DeleteVerbiage(['role' => $role]);
+      }
+    } // end loop on ids
+  
+  } else {
+
+    # $ids contains one or more values of locals.object_id
+
+    foreach($ids as $id) {
+      DeleteLocal([
+        'itemtype' => $itemtype,
+	'object_id' => $id
+      ]);
+    } // end loop on ids
+  }
+  return true;
+  
+} // end DeleteStrings()
