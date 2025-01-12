@@ -682,7 +682,7 @@ function GetLanguages($code = null) {
   $sql = 'SELECT code, description, active, COUNT(*) AS count
  FROM language la
   LEFT JOIN locals l ON l.language = la.code'
- . (isset($code) ? ' AND code = ?' : '')
+ . (isset($code) ? ' WHERE code = ?' : '')
  . ' GROUP BY code ORDER BY description';
 
   try {
