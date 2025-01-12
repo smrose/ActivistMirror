@@ -11,6 +11,7 @@
  *
  *  Choose           select languages and item type
  *  NewString        present a form for adding a new string
+ *  KillString       present a form for deleting strings
  *  Error            fail in disgrace
  *  Translate        present the form for entering strings
  *  Absorb           absorb edited strings
@@ -22,7 +23,24 @@
  *
  * NOTES
  *
-
+ *  The application uses a database to store strings, patterns, weights,
+ *  responses, and users. We use the PHP PDO library for access. It's
+ *  tested with MySQL, MariaDB, and SQLite3.
+ *
+ *  Access to this tool is restricted to authorized users. Currently,
+ *  translators authenticate externally, and this application looks at
+ *  the REMOTE_USER envar to determine who a user is. That might be set
+ *  using Basic Auth and access could be restricted with a .htaccess file.
+ *  Users are authorized by superusers to translate specific languages.
+ *
+ *   CREATE TABLE translator (
+ *    id integer NOT NULL,
+ *    userid varchar(16) NOT NULL,
+ *    super tinyint(1) NOT NULL DEFAULT 0,
+ *    PRIMARY KEY (id),
+ *    UNIQUE (userid)
+ *   );
+ *
  *  Strings are held in the 'locals' and 'verbiage' tables. Each row
  *  in 'locals' has 'itemtype' and 'object_id' values that determine the
  *  role it plays in the system and 'language' value that determines
@@ -182,13 +200,13 @@ function NewString() {
 
   $rolesel = "<select name=\"role\" id=\"role\" disabled>\n";
   foreach($roles as $role)
-    $rolesel .= " <option value=\"{$role['id_role']}\">{$role['name']}</option>\n";
+    $rolesel .= " <option value=\"{$role['id_role']}\">{$role['name']} ({$role['id_role']})</option>\n";
   $rolesel .= "</select>\n";
 
   $patternsel = "<select name=\"pattern\" id=\"pattern\" disabled>
 ";
   foreach($patterns as $pattern)
-    $patternsel .= " <option value=\"{$pattern['id']}\">{$pattern['title']}</option>\n";
+    $patternsel .= " <option value=\"{$pattern['id']}\">{$pattern['title']} ({$pattern['id']})</option>\n";
   $patternsel .= "</select>\n";
 
   $nitemtype = "<select name=\"itemtype\" id=\"news\">\n";
@@ -223,6 +241,121 @@ type.</p>
 ";
 
 } // end NewString()
+
+
+/* KillString()
+ *
+ *  Delete a set of strings (from locals or verbiage).
+ *
+ *  Called with $itemtype null, display a form for selecting a string type.
+ *  
+ */
+
+function KillString($itemtype = null) {
+
+  if(isset($itemtype)) {
+
+    // itemtype has been selected
+
+    $itemtypes = ItemTypes($itemtype);
+    $itname = $itemtypes[0][1];
+    
+    if($_POST['submit'] == 'Delete selected') {
+   
+      // ids of strings to be deleted have been selected
+
+      $ids = [];
+      foreach($_POST as $key => $value)
+        if(preg_match('/^[0-9_]+$/', $key))
+          $ids[] = $key;
+
+      if(count($ids)) {
+        if(DeleteStrings($itemtype, $ids))
+	  print "<p>Deleted <em>$itname</em> strings " . implode(',', $ids) . "</p>\n";
+	else
+	  print "<p>Deletions failed.</p>\n";
+      } else
+        print "<p>None selected.</p>\n";
+      return 0;
+
+    } else {
+    
+     // Select the specific strings being deleted.
+  
+     if($itemtype == VERBIAGE_T)
+       $sources = AllVerbiage('en');
+     else
+       $sources = Locals($itemtype, 'en');
+
+    print "<h2>Selecting <em>$itname</em> elements for deletion</h2>
+<form method=\"POST\" class=\"parisbrest\">
+ <input name=\"state\" type=\"hidden\" value=\"delete\">
+ <input type=\"hidden\" name=\"itemtype\" value=\"$itemtype\">
+";
+
+    foreach($sources as $source) {
+      if($itemtype == VERBIAGE_T) {
+        $ovalue = $source['vstring'];
+        $tag = "Role: {$source['role']}";
+        $id = $source['role'];
+	if(isset($source['pattern'])) {
+	  $tag .= "; Pattern: {$source['pattern']}";
+	  $id .= "_{$source['pattern']}";
+	}
+      } else {
+        $tag = $source['object_id'];
+        $ovalue = $source['localstring'];
+        $id = $source['object_id'];
+      }
+      print " <div><span class=\"tag\">$tag</span>$ovalue</div>
+ <div><input type=\"checkbox\" name=\"$id\" value=\"1\"></div>
+";
+    } // end loop on strings of this type
+    
+    print " <div class=\"sub\">
+  <input type=\"submit\" name=\"submit\" value=\"Delete selected\">
+  <input type=\"submit\" name=\"submit\" value=\"Cancel\">
+ </div>
+</form>
+";
+      return 1;
+    }
+
+  } else {
+
+    // Select the type of string to be deleted.
+    
+    $itemtypes = ItemTypes();
+    $itemtype = "<select name=\"itemtype\" id=\"dels\">\n";
+    foreach($itemtypes as $it) {
+      $opt = " <option value=\"${it[0]}\">{$it[1]}</option>\n";
+      $itemtype .= $opt;
+    }
+    $itemtype .= "</select>\n";
+
+    print "<h2>Delete Strings</h2>
+
+<p style=\"font-weight: bold\">Select a string type and press the
+<code>Select</code> button to present a list of strings of that type that
+can then be selected for deletion.</p>
+
+<form method=\"POST\" class=\"challah\">
+
+ <input name=\"state\" type=\"hidden\" value=\"delete\">
+
+ <div class=\"chead\">String type:</div>
+ <div>$itemtype</div>
+
+ <div class=\"csub\">
+  <input type=\"submit\" name=\"submit\" value=\"Select\">
+ </div>
+
+</form>
+";
+    return 1;
+  }
+
+} // end KillString()
 
 
 /* Error()
@@ -764,8 +897,13 @@ if(!isset($user) || (!count($languages) && !$user['super'])) {
 $rv = 0;
 
 if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
+  $state = isset($_POST['state']) ? $_POST['state'] : '';
 
-  if($_POST['state'] == 'lang' || $_POST['state'] == 'absorb') {
+  if($state == 'delete') {
+    $itemtype = $_POST['itemtype'];
+    $rv = KillString($itemtype);
+
+  } elseif($state == 'lang' || $state == 'absorb') {
 
     # languages and itemtype have been specified; present or absorb translations
   
@@ -775,7 +913,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
     if($itemtype == 'itemtype')
       Error("You failed to specify an itemtype");
  
-    if($_POST['state'] == 'absorb') {
+    if($state == 'absorb') {
 
       # absorbing translations
     
@@ -809,7 +947,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
       ]);
       $rv = 1;
     }
-  } elseif($_POST['state'] == 'new') {
+  } elseif($state == 'new') {
 
     /* A new string. */
 
@@ -836,17 +974,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
        $itemtype = $_POST['itemtype'];
        print '<p class="alert">' . CreateString($itemtype) . "</p>\n";
     }
-  } elseif($_POST['state'] == 'st') {
+  } elseif($state == 'st') {
 
     // absorbing translators
 
     SetTranslators();
-  } elseif($_POST['state'] == 'u') {
+  } elseif($state == 'u') {
 
     // Absorb a new user.
       
     Users($_POST['userid'], $_POST['super']);
-  } elseif($_POST['state'] == 'activel') {
+  } elseif($state == 'activel') {
 
     // Setting language.active from form input.
 
@@ -857,6 +995,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
 if(!$rv) {
   Choose($languages);
   NewString();
+  KillString();
   if($user['super']) { // superusers create and assign translators
     Translators();
     Users();
