@@ -78,6 +78,21 @@ body {
     padding: .1em;
     background-color: rgb(240, 240, 240, 60%);
 }
+.tag {
+    background-color: rgb(0,0,0,5%);
+    padding: .5em;
+}
+.parisbrest {
+    display: grid;
+    grid-template-columns: auto, max-content;
+    background-color: rgb(0,0,0,10%);
+    padding: .5em;
+}
+.parisbrest > div {
+    margin: .1em;
+    padding: .1em;
+    background-color: rgb(240, 240, 240, 60%);
+}
 .sub {
     text-align: center;
     grid-column: span 2;
