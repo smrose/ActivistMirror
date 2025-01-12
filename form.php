@@ -109,7 +109,7 @@ $answervar = "q" . $page;
 
 $i = 1;
 foreach($answers as $answer) {
-  echo "<input type=\"radio\" id=\"$i\" name=\"$answervar\" value=\"$i\"><label for=\"$i\">&nbsp;$answer</label><br>\n";
+  echo "<div class=\"answer\"><input type=\"radio\" id=\"$i\" name=\"$answervar\" value=\"$i\"><label for=\"$i\">&nbsp;$answer</label></div>\n";
   $i++;
 } // end loop on answers
 
