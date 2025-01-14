@@ -34,18 +34,15 @@
 
 /* ItemTypes()
  *
- *  Return a list of all the itemtypes for which there is at least one value
- *  in the "locals" table. Plus, "verbiage."
+ *  Return a list of all the itemtypes plus, "verbiage."
  */
 
 function ItemTypes($itemtype_id = null) {
   global $con;
 
-  $sql = 'SELECT *, count(*) FROM itemtypes i
- JOIN locals l ON i.itemtype_id = l.itemtype';
+  $sql = 'SELECT * FROM itemtypes';
   if(isset($itemtype_id))
     $sql .= ' WHERE itemtype_id = ?';
-  $sql .= ' GROUP BY itemtype_id';
   $params = [];
   if(isset($itemtype_id))
     $params = [$itemtype_id];
@@ -56,7 +53,6 @@ function ItemTypes($itemtype_id = null) {
   } catch(PDOException $e) {
     throw new PDOException($e->getMessage(), (int) $e->getCode());
   }
-  $itemtypes[] = [VERBIAGE_T, 'verbiage'];
   return $itemtypes;
 
 } /* end ItemTypes() */
