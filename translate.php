@@ -104,7 +104,7 @@
  *  They can also enter translations.
  */
 
-const VERBIAGE_T = 30;
+const VERBIAGE_T = 22;
 
 
 /* Choose()
@@ -121,18 +121,31 @@ function Choose($langs) {
   $languages = GetLanguages(); // code, description
   $itemtypes = ItemTypes(); // itemtype_id, itemtype
   
-  $source = "<select name=\"source\">\n";
-  $destination = "<select name=\"destination\">\n";
-  $itemtype = "<select name=\"itemtype\">\n";
+  $source1 = "<select name=\"source1\">
+ <option value=\"xx\">Select</option>
+";
+  $source2 = "<select name=\"source2\">
+ <option value=\"xx\">Select</option>
+";  
+  $destination = "<select name=\"destination\">
+ <option value=\"xx\">Select</option>
+";
+  $itemtype = "<select name=\"itemtype\">
+ <option value=\"xx\">Select</option>
+";
 
   # Loop on languages.
 
   $defaultDest = null;
   if(isset($_POST)) {
-    if(isset($_POST['source']))
-      $defaultSource = $_POST['source'];
+    if(isset($_POST['source1']))
+      $defaultSource1 = $_POST['source1'];
     else
-      $defaultSource = 'en';
+      $defaultSource1 = 'en';
+    if(isset($_POST['source2']))
+      $defaultSource2 = $_POST['source2'];
+    else
+      $defaultSource2 = 'xx';
     if(isset($_POST['destination']))
       $defaultDest = $_POST['destination'];
     $defaultItem = isset($_POST['itemtype']) ? $_POST['itemtype'] : '';
@@ -143,13 +156,15 @@ function Choose($langs) {
     $description = $language['description'];
     $able = '';
 
-    $selected = ($code == $defaultSource) ? ' selected' : '';
-    $source .= " <option value=\"${language['code']}\"$selected>${language['description']}</option>\n";
+    $selected = ($code == $defaultSource1) ? ' selected' : '';
+    $source1 .= " <option value=\"{$language['code']}\"$selected>{$language['description']}</option>\n";
+    $selected = ($code == $defaultSource2) ? ' selected' : '';
+    $source2 .= " <option value=\"{$language['code']}\"$selected>{$language['description']}</option>\n";
 
     if($super || $code != 'en') {
       $selected = ($code == $defaultDest) ? ' selected' : '';
       $able = (!$super && !in_array($code, $langs)) ? ' disabled' : '';
-      $destination .= " <option value=\"${language['code']}\"$able$selected>${language['description']}</option>\n";
+      $destination .= " <option value=\"{$language['code']}\"$able$selected>{$language['description']}</option>\n";
     }
   } // end loop on languages
 
@@ -157,27 +172,30 @@ function Choose($langs) {
 
   foreach($itemtypes as $it) {
     $selected = ($it[0] == $defaultItem) ? ' selected' : '';
-    $opt = " <option value=\"${it[0]}\"$selected>${it[1]}</option>\n";
+    $opt = " <option value=\"{$it[0]}\"$selected>{$it[1]}</option>\n";
     $itemtype .= $opt;
   }
 
-  $source .= "</select>\n";
+  $source1 .= "</select>\n";
+  $source2 .= "</select>\n";
   $destination .= "</select>\n";
   $itemtype .= "</select>\n";
 
   print "<h2>Translate</h2>
   
-<p style=\"font-weight: bold\">Start by selecting a source and destination language and the type of strings you intend to translate.</p>
+<p style=\"font-weight: bold\">Start by selecting source and destination
+languages and the type of strings you intend to translate.</p>
 ";
   if($super)
     print "<p style=\"font-weight: bold\">Choose 'en' as both the source and destination language to edit the English text of a string.</p>\n";
 
   print "<form method=\"POST\" class=\"challah\">
 <input name=\"state\" type=\"hidden\" value=\"lang\">
-<div class=\"chead\">Source language:</div><div>$source</div>
+<div class=\"chead\">Source language:</div><div>$source1</div>
+<div class=\"chead\">Optional second source:</div><div>$source2</div>
 <div class=\"chead\">Destination language:</div><div>$destination</div>
 <div class=\"chead\">String type:</div><div>$itemtype</div>
-<div class=\"csub\"><input type=\"submit\" name=\"submit\" value=\"Select\"></div>
+<div class=\"csub\"><input type=\"submit\" name=\"submit\" value=\"Continue\"></div>
 </form>
 ";
 
@@ -212,7 +230,7 @@ function NewString() {
   $nitemtype = "<select name=\"itemtype\" id=\"news\">\n";
   foreach($itemtypes as $it) {
     $selected = ($it[0] == $defaultItem) ? ' selected' : '';
-    $opt = " <option value=\"${it[0]}\"$selected>${it[1]}</option>\n";
+    $opt = " <option value=\"{$it[0]}\"$selected>{$it[1]}</option>\n";
     $nitemtype .= $opt;
   }
   $nitemtype .= "</select>\n";
@@ -328,7 +346,7 @@ function KillString($itemtype = null) {
     $itemtypes = ItemTypes();
     $itemtype = "<select name=\"itemtype\" id=\"dels\">\n";
     foreach($itemtypes as $it) {
-      $opt = " <option value=\"${it[0]}\">{$it[1]}</option>\n";
+      $opt = " <option value=\"{$it[0]}\">{$it[1]}</option>\n";
       $itemtype .= $opt;
     }
     $itemtype .= "</select>\n";
@@ -376,82 +394,141 @@ function Error($s) {
  */
  
 function Translate($opts) {
+  global $user;
+
+  $super = $user['super'];
 
   // Get the itemtypes.itemtype value into $itemtype.
-  
-  $itemtype = ItemTypes($opts['itemtype']);
-  $itemtype = $itemtype[0][1];
 
-  // Get the languages.name values into $sname and $dname.
+  $errors = [];
+  if(isset($opts['itemtype'])) {
+    $itemtype = ItemTypes($opts['itemtype']);
+    $itemtype = $itemtype[0][1];
+  } else
+    $errors[] = 'Select a string type for translation';
 
-  $sname = GetLanguages($opts['source']);
-  $dname = GetLanguages($opts['destination']);
+  /* Get the languages.name values into $sname1, $sname2 (if specified)
+   * and $dname. */
+
+  if(isset($opts['source1']))
+    $sname1 = GetLanguages($opts['source1']);
+  else
+    $errors[] = 'Select a source language';
+
+  if(isset($opts['source2'])) {
+    $sname2 = GetLanguages($opts['source2']);
+    $fclass = 'scone';
+    $sclass = 'sub3';
+  } else {
+    $fclass = 'cronut';
+    $sclass = 'sub';
+  }
+  if(isset($opts['destination']))
+    $dname = GetLanguages($opts['destination']);
+  else
+    $errors[] = 'Select a destination language';
+
+  // validate selections
+
+  if(isset($sname1) && isset($dname)) {
+
+    // superusers can translate 'en' to 'en'
+
+    if($opts['source1'] == $opts['destination'] &&
+       ($opts['destination'] != 'en' || !$super))
+      $errors[] = 'Source and destination language must differ'; 
+   if(isset($opts['source2']) && $opts['source1'] == $opts['source2'])
+      $errors[] = 'Primary and secondary source languages must differ';
+  }
+  if(count($errors))
+    Error(implode("<br>\n", $errors));
 
   if($opts['itemtype'] == VERBIAGE_T) {
   
     // Fetch verbiage records matching source and destination languages.
 
-    $sources = AllVerbiage($opts['source']);
+    $sources1 = AllVerbiage($opts['source1']);
+    if(isset($opts['source2']))
+      $sources2 = AllVerbiage($opts['source2']);
     $destinations = AllVerbiage($opts['destination']);
+
   } else {
 
     // Fetch all the locals that match the source language and itemtype.
 
-    $sources = Locals($opts['itemtype'], $opts['source']);
+    $sources1 = Locals($opts['itemtype'], $opts['source1']);
+    if(isset($opts['source2']))
+      $sources2 = Locals($opts['itemtype'], $opts['source2']);
     $destinations = Locals($opts['itemtype'], $opts['destination']);
   }
 
   // Build a form for translating.
 
-  print "<h2>Translating <em>$itemtype</em> elements from <em>${sname['description']}</em> to <em>${dname['description']}</em></h2>
+  print "<h2>Translating <em>$itemtype</em> elements from <em>{$sname1['description']}</em>" .
+  (isset($opts['source2']) ? " and <em>{$sname2['description']}</em>" : '') .
+  " to <em>{$dname['description']}</em></h2>
 
-<form method=\"POST\" class=\"cronut\">
- <input type=\"hidden\" name=\"source\" value=\"${opts['source']}\">
- <input type=\"hidden\" name=\"destination\" value=\"${opts['destination']}\">
- <input type=\"hidden\" name=\"itemtype\" value=\"${opts['itemtype']}\">
+<form method=\"POST\" class=\"$fclass\">
+ <input type=\"hidden\" name=\"source1\" value=\"{$opts['source1']}\">
+ <input type=\"hidden\" name=\"destination\" value=\"{$opts['destination']}\">
+ <input type=\"hidden\" name=\"itemtype\" value=\"{$opts['itemtype']}\">
  <input type=\"hidden\" name=\"state\" value=\"absorb\">
 ";
+  if(isset($opts['source2']))
+    print " <input type=\"hidden\" name=\"source2\" value=\"{$opts['source2']}\">\n";
 
   /* Loop on elements in the source language, adding a textarea to the form
    * for each element. If a corresponding string exists in the destination
    * language, use its 'local_id' value as the name of the textarea; if not,
    * use the <object_id>. */
 
-  foreach($sources as $source) {
+  foreach($sources1 as $local_id => $source1) {
+
+    if(isset($sources2[$local_id]))
+      $source2 = $sources2[$local_id];
+    else
+      $source2 = null;
 
     if($opts['itemtype'] == VERBIAGE_T) {
-      $k = $source['role'] .
-        (isset($source['pattern']) ? "_{$source['pattern']}" : '');
-      $ovalue = $source['vstring'];
+      $k = $source1['role'] .
+        (isset($source1['pattern']) ? "_{$source1['pattern']}" : '');
+      $ovalue1 = $source1['vstring'];
+      $ovalue2 = isset($source2)
+        ? $source2['vstring'] : '<span class="faint">(no value)</span>';
       $value = (isset($destinations[$k])) ? $destinations[$k]['vstring'] : '';
-      $pattern = isset($source['pattern'])
-        ? ($source['pattern']
-	   ? "{$source['patname']} ({$source['pattern']})"
+      $pattern = isset($source1['pattern'])
+        ? ($source1['pattern']
+	   ? "{$source1['patname']} ({$source1['pattern']})"
 	   : 'none matched')
         : 'n/a';
-      $placeholder = " placeholder=\"role: {$source['rolename']}  pattern: $pattern\"";
-      $title = "Role: {$source['rolename']} ({$source['role']}) , Pattern: $pattern";
+      $placeholder = " placeholder=\"role: {$source1['rolename']}  pattern: $pattern\"";
+      $title = "Role: {$source1['rolename']} ({$source1['role']}) , Pattern: $pattern";
       $old = "<div>
  <div class=\"label\">$title</div>
  <div>$ovalue</div>
 </div>
 ";
     } else {
-      $k = $source['object_id'];
-      $ovalue = $source['localstring'];
+      $k = $source1['object_id'];
+      $ovalue1 = $source1['localstring'];
+      $ovalue2 = isset($source2)
+        ? $source2['localstring'] : '<span class="faint">(no value)</span>';
       $value = (isset($destinations[$k])) ? $destinations[$k]['localstring'] : '';
       $placeholder = '';
       $title = "ID: $k";
     }
     print "  <div>
    <div class=\"label\">$title</div>
-   <div>$ovalue</div>
+   <div>$ovalue1</div>
   </div>
-  <div><textarea name=\"$k\" style=\"width: 100%\"$placeholder>$value</textarea></div>
-  ";
+";
+    if($fclass == 'scone')
+      print "  <div>$ovalue2</div>\n";
+    print "  <div><textarea name=\"$k\" style=\"width: 100%\"$placeholder>$value</textarea></div>\n";
+  
   } // end loop on elements
 
-  print "<div class=\"sub\">
+  print "<div class=\"$sclass\">
  <input type=\"submit\" name=\"submit\" value=\"Absorb\">
  <input type=\"submit\" name=\"submit\" value=\"Absorb and Continue\">
  <input type=\"submit\" name=\"submit\" value=\"Cancel\">
@@ -602,7 +679,7 @@ function Translators() {
 
 <p style=\"font-weight: bold\">Superusers assign users to languages in this form.</p>
 
-<form method=\"POST\" action=\"${_SERVER['SCRIPT_NAME']}\" enctype=\"multipart/form-data\" class=\"tform\">
+<form method=\"POST\" action=\"{$_SERVER['SCRIPT_NAME']}\" enctype=\"multipart/form-data\" class=\"tform\">
 <input type=\"hidden\" name=\"state\" value=\"st\">
 <div class=\"thead\">Username</div>
 <div class=\"thead\">Languages</div>
@@ -627,7 +704,7 @@ function Translators() {
         $selected = ' selected';
       else
         $selected = '';
-      $select .= " <option value=\"${language['code']}\"$selected>${language['description']}\n";
+      $select .= " <option value=\"{$language['code']}\"$selected>{$language['description']}\n";
     }
     $select .= "</select>\n";
     print "<div title=\"{$user['id']}\">{$user['userid']}</div>
@@ -665,7 +742,7 @@ function Users($userid = NULL, $super = NULL) {
 
 <p style=\"font-weight: bold\">Superusers create users in this form.</p>
 
-<form method=\"POST\" action=\"${_SERVER['SCRIPT_NAME']}\" enctype=\"multipart/form-data\" class=\"challah\">
+<form method=\"POST\" action=\"{$_SERVER['SCRIPT_NAME']}\" enctype=\"multipart/form-data\" class=\"challah\">
  <input type=\"hidden\" name=\"state\" value=\"u\">
  <div class=\"tfield\">Username:</div>
  <div>
@@ -754,14 +831,14 @@ function SetTranslators() {
     InsertTranslator($insert[0], $insert[1]);
     $user = $users[$insert[0]];
     $language = $languages[$insert[1]];
-    print "<p class=\"alert\">Added <em>${user['userid']}</em> as a translator of <em>${language['description']}</em></p>\n";
+    print "<p class=\"alert\">Added <em>{$user['userid']}</em> as a translator of <em>{$language['description']}</em></p>\n";
   }
 
   foreach($deletes as $delete) {
     DeleteTranslator($delete[0], $delete[1]);
     $user = $users[$delete[0]];
     $language = $languages[$delete[1]];
-    print "<p class=\"alert\">Removed <em>${user['userid']}</em> as a translator of <em>${language['description']}</em></p>\n";
+    print "<p class=\"alert\">Removed <em>{$user['userid']}</em> as a translator of <em>{$language['description']}</em></p>\n";
   }
   if(count($deletes) + count($inserts) == 0)
     print "<p class=\"alert\">No changes.</p>\n";
@@ -906,28 +983,20 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
   } elseif($state == 'lang' || $state == 'absorb') {
 
     # languages and itemtype have been specified; present or absorb translations
-  
-    $destination = $_POST['destination'];
-    $itemtype = $_POST['itemtype'];
-  
-    if($itemtype == 'itemtype')
-      Error("You failed to specify an itemtype");
- 
+
+    $opts = [];
+    foreach(['source1', 'source2', 'itemtype', 'destination'] as $field)
+      if(isset($_POST[$field]) && $_POST[$field] != 'xx')
+        $opts[$field] = $_POST[$field];
+
     if($state == 'absorb') {
 
       # absorbing translations
     
-      Absorb([
-       'itemtype' => $itemtype,
-       'destination' => $destination
-      ]);
+      Absorb($opts);
+
       if($_POST['submit'] == 'Absorb and Continue') {
-        $source = $_POST['source'];
-        Translate([
-         'itemtype' => $itemtype,
-         'source' => $source,
-         'destination' => $destination
-        ]);
+        Translate($opts);
         $rv = 1; # suppress generate other forms
       }
     
@@ -935,16 +1004,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['submit'] != 'Cancel') {
 
       # presenting a form for translation entry
     
-      $source = $_POST['source'];
-      if($source == $destination && !$user['super'] && $source != 'en')
-        Error("Source and destination languages may not be the same");
-      else if($source == 'source' || $destination == 'destination')
-        Error("You failed to specify a source and destination language");
-      Translate([
-       'itemtype' => $itemtype,
-       'source' => $source,
-       'destination' => $destination
-      ]);
+      Translate($opts);
       $rv = 1;
     }
   } elseif($state == 'new') {
