@@ -117,6 +117,7 @@ function Locals($itemtype, $language) {
   } catch(PDOException $e) {
     throw new PDOException($e->getMessage(), (int) $e->getCode());
   }
+  $r = [];
   foreach($locals as $local)
     $r[$local['object_id']] = $local;
   return $r;
