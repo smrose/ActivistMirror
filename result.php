@@ -199,6 +199,29 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
   <script>
 
+    const threshold = 850
+
+    /* mode()
+     *
+     *  Switch between portrait and landscape according to viewport width.
+     */
+
+    function mode() {
+      const vpwidth = window.innerWidth
+      if(vpwidth > threshold) {
+
+        // A wide viewport? Landscape, with image on the right.
+       
+        if(tcol.style.flexDirection != 'row') {
+	  tcol.style.flexDirection = 'row'
+        }
+      } else {
+        if(tcol.style.flexDirection != 'column') {
+	  tcol.style.flexDirection = 'column'
+        }
+      }
+    } // end mode()
+
     /* card()
      *
      *  Manage click events on a pattern card.
@@ -375,6 +398,14 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
   <div id="lert">Suggestions saved.</div>
 
   <script>
+
+    const tcol = document.querySelector('#tcol')
+    const rolePanel = document.querySelector('#rolepanel')
+    const patterns = document.querySelector('#patterns')
+
+    window.addEventListener('resize', mode)
+    mode()
+
     lert = document.querySelector('#lert')
     lert.addEventListener('animationend', rst)
     twotwo = document.querySelector('#twotwo')

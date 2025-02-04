@@ -1,7 +1,5 @@
 #tcol {
-    display: grid;
-    grid-template-columns: repeat(2, 50%);
-    grid-column-gap: 1vw;
+    display: flex;
     margin: 1vw;
 }
 #rolepanel {
@@ -41,7 +39,7 @@
     margin-right: auto;
 }
 #patterns {
-    padding-right: 1vw;
+    padding: 1vw;
 }
 #twotwo {
     display: grid;
