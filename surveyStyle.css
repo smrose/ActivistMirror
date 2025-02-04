@@ -86,28 +86,14 @@ input[type="text"], textarea {
     display: inline-block;
 }
 #dhead {
-  padding: 2vw;
-  backdrop-filter: blur(8px);
-  background-color: rgb(255 255 255 / 20%);
-  margin-left: 15%;
-  margin-top: 4vh;
-  margin-bottom: 2vh;
-  font-family: "Paytone One", sans-serif;
-  font-size: 3vw;
-}
-#qgrid {
-    display: grid;
-    grid-template-columns: 60vw 40vw;
-    grid-column-gap: 1vw;
-    padding: 1.5vw;
-}
-#dog {
-    padding: 1vw;
+    padding: 2vw;
     backdrop-filter: blur(8px);
     background-color: rgb(255 255 255 / 20%);
-}
-#ipan {
-    padding: 1vw;
+    margin-left: 15%;
+    margin-top: 4vh;
+    margin-bottom: 2vh;
+    font-family: "Paytone One", sans-serif;
+    font-size: 3vw;
 }
 #gi {
     object-fit: cover;
@@ -123,7 +109,7 @@ input[type="text"], textarea {
     background-color: #71a78c;
     border: 1px solid #666;
     border-radius: 15px;
-    font-size: 30pt;
+    font-size: 3vw;
     font-weight: bold;
     padding-right: 2em;
     padding-left: 2em;

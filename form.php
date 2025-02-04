@@ -75,14 +75,71 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
  <title>Playing the Activist Mirror Game</title>
  <link rel="stylesheet" href="surveyStyle.css">
- <style>
+ 
+ <script>
+
+   const threshold = 850
+
+   /* mode()
+    *
+    *  Swap between portrait and landscpe mode according to viewport width.
+    */
+
+   function mode() {
+     const vpwidth = window.innerWidth
+     if(vpwidth > threshold) {
+
+       // A wide viewport? Landscape, with image on the right.
+       
+       if(container.style.flexDirection != 'row') {
+         container.style.flexDirection = 'row'
+         questions.style.height = 'auto'
+         questions.style.width = '60%'
+         image.style.height = 'auto'
+         image.style.width = '40%'
+	 questions.style.order = 1
+	 image.style.order = 2
+       }
+     } else {
+
+       // A narrow viewport? Portrait, with image at the top.
+       
+       if(container.style.flexDirection != 'column') {
+         container.style.flexDirection = 'column'
+         questions.style.width = '100%'
+         image.style.width = '40vw'
+	 image.style.marginLeft = 'auto'
+	 image.style.marginRight = 'auto'
+	 questions.style.order = 2
+	 image.style.order = 1
+       }
+     }
+   } // end mode()
+
+ </script>
+
+ <style type="text/css">
     body {
-	font-weight: 400;
-	font-size: 1.8vw;
+      font-weight: 400;
+      font-size: 1.8vw;
     }
     input[type="radio"] {
-        margin-top: -1px;
-        vertical-align: middle;
+       margin-top: -1px;
+       vertical-align: middle;
+    }
+    #container {
+      display: flex;
+      height: 100vh;
+      gap: 1vh 1vw;
+      margin: 1vw;
+    }
+    #questions {
+      padding: 1vw;
+      backdrop-filter: blur(8px);
+      background-color: rgb(255 255 255 / 20%);
+    }
+    #image {
+      padding: 1vw;
     }
  </style>
 </head>
@@ -95,8 +152,8 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
  <?=$qdescriptor?>
 </div>
 
-<div id="qgrid">
-  <div id="dog">
+<div id="container">
+  <div id="questions">
    <?=$question?>
 
    <form method="POST" action="<?=$action?>">
@@ -126,9 +183,10 @@ for($pn = 1; $pn < $page; $pn++)
       </div>
     </form>
   </div>
-  <div id="ipan">
+  <div id="image">
    <img src="img/<?=$qimage?>" id="gi">
   </div>
+</div>
 
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
 
@@ -136,8 +194,13 @@ for($pn = 1; $pn < $page; $pn++)
   dev = document.querySelector('#dev')
 <?php
   if(!isset($dev))
-   print("dev.style.display = 'none'");
+    print("  dev.style.display = 'none'\n")
 ?>
+  const container = document.querySelector('#container')
+  const questions = document.querySelector('#questions')
+  const image = document.querySelector('#image')
+  window.addEventListener('resize', mode);
+  mode();
 </script>
 </body>
 </html>
