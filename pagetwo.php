@@ -47,7 +47,52 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
   <link href="https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Paytone+One&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Paytone+One&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  
+  <script>
+  
+    const threshold = 850
+    
+   /* mode()
+    *
+    *  Swap between portrait and landscpe mode according to viewport width.
+    */
+
+    function mode() {
+      const vpwidth = window.innerWidth
+      if(vpwidth > threshold) {
+
+        // Landscape for wide screens.
+
+        if(c2.style.flexDirection != 'row') {
+	  c2.style.flexDirection = 'row'
+	  c2ds.forEach(c2d => {
+	    c2d.style.width = '50vw'
+	  })
+	}
+      } else {
+
+        // Portrait for narrow screens.
+
+        if(c2.style.flexDirection != 'column') {
+	  c2.style.flexDirection = 'column'
+	}
+      }
+    }
+
+  </script>
+
   <link rel="stylesheet" href="surveyStyle.css">
+  <style type="text/css">
+    #c2 {
+      display: flex;
+      gap: 1vh 1vw;
+      margin: 1vw;
+    }
+    .cl2 {
+      padding: 1.5vw;
+      font-size: 1.5vw;
+    }
+  </style>
 </head>
 
 <body>
@@ -61,11 +106,12 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
 <form method="POST" action="form.php">
 <?=$langinput?>
 <?=$versioninput?>
-<div id="twocol">
-  <div id="bothcol">
-   <?=$Based?>
-  </div>
-  <div>
+<div class="cl2">
+ <?=$Based?>
+</div>
+
+<div id="c2">
+  <div class="c2d">
     <div class="fh"><?=$providing?></div>
     <div class="fh">
       <?=$group?>:
@@ -79,15 +125,15 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
     <div>
       <input type="text" value="<?=$qp['project']?>" name="project">
     </div>
- </div>
- <div>
-   <div class="fh"><?=$provprompt?></div>
-   <div class="fh"><?=$examprompt?></div>
-   <div class="fh"><?=$prompt?>:</div>
-   <div>
-     <textarea name="prompt" rows="3" cols="80"><?=$qp['prompt']?></textarea>
-   </div>
- </div>
+  </div>
+  <div class="c2d">
+    <div class="fh"><?=$provprompt?></div>
+    <div class="fh"><?=$examprompt?></div>
+    <div class="fh"><?=$prompt?>:</div>
+    <div>
+      <textarea name="prompt" rows="3" cols="60"><?=$qp['prompt']?></textarea>
+    </div>
+  </div>
 </div>
 <div id="loz">
   <input type="submit" name="submit" value="<?=$next?>">
@@ -102,6 +148,10 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
   if(!isset($dev))
    print("dev.style.display = 'none'\n");
 ?>
+  const c2 = document.querySelector('#c2')
+  const c2ds = document.querySelectorAll('.c2d')
+  window.addEventListener('resize', mode)
+  mode()
 </script>
 
 </body>
