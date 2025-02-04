@@ -199,8 +199,8 @@ for($pn = 1; $pn < $page; $pn++)
   const container = document.querySelector('#container')
   const questions = document.querySelector('#questions')
   const image = document.querySelector('#image')
-  window.addEventListener('resize', mode);
-  mode();
+  window.addEventListener('resize', mode)
+  mode()
 </script>
 </body>
 </html>
