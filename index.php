@@ -39,15 +39,25 @@ else
 
 // build a popup menu, initially hidden, to allow users to select a language
 
-$langs = GetLanguages();
-$langsel = "<select name=\"language\" id=\"langsel\">\n";
-foreach($langs as $lang) {
-  if($lang['active']) {
-    $selected = ($lang['code'] == $language) ? ' selected' : '';
-    $langsel .= " <option value=\"{$lang['code']}\"$selected>{$lang['description']}</option>\n";
+$langs = GetLanguages(['active' => 1]);
+if(count($langs) > 1) {
+  $lang_sel = LocalString($language, MESSAGES, LANGSEL);
+  $langsel = "<div id=\"sl\">
+ <button>$lang_sel</button>
+</div>
+";
+  $langsel .= "<select name=\"language\" id=\"langsel\">\n";
+  foreach($langs as $lang) {
+    if($lang['active']) {
+      $selected = ($lang['code'] == $language) ? ' selected' : '';
+      $langsel .= " <option value=\"{$lang['code']}\"$selected>{$lang['description']}</option>\n";
+    }
   }
+  $langsel .= "</select>\n";
+} else {
+  $langsel = '';
 }
-$langsel .= "</select>\n";
+
 
 // Get various strings from the 'locals' table.
 
@@ -59,7 +69,6 @@ $submitLabel = LocalString($language, MESSAGES, SUBMITLABEL);
 $allTypes = LocalString($language, MESSAGES, ALLTYPES);
 $whatKind = LocalString($language, MESSAGES, WHATKIND);
 $begin =  LocalString($language, MESSAGES, BEGIN);
-$lang_sel = LocalString($language, MESSAGES, LANGSEL);
 $instructions = '<p class="nlead">' . implode("</p>\n<p class=\"nlead\">", explode("\n", LocalString($language, MESSAGES, INSTRUCTIONS))) . "</p>\n";
 
 $uid = time();
@@ -138,9 +147,6 @@ $uid = time();
   <button><?=$begin?></button>
 </div>
 
-<div id="sl">
- <button><?=$lang_sel?></button>
-</div>
 <?=$langsel?>
 
 <script>
