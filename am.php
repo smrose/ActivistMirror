@@ -665,7 +665,7 @@ function Verbiage($role, $pattern, $language) {
 
 /* GetLanguages()
  *
- *  Fetch associative arrays for all or one language specified by 'code' from
+ *  Fetch associative arrays for all or some languages.
  *
  *   CREATE TABLE language(
  *    code char(2) NOT NULL PRIMARY KEY,
@@ -674,16 +674,30 @@ function Verbiage($role, $pattern, $language) {
  *   );
  *
  *  augmented by the number of strings in that language as 'count'.
+ *
+ *  The filter argument can contain a value for 'code' xor 'active'.
  */
 
-function GetLanguages($code = null) {
+function GetLanguages($filter = null) {
   global $con;
 
-  $sql = 'SELECT code, description, active, COUNT(*) AS count
+  if(isset($filter)) {
+    $where = 'WHERE ';
+    if(isset($filter['code'])) {
+      $where .= 'code = ?';
+      $params[] = $filter['code'];
+    } elseif(isset($filter['active']))
+      $where .= $filter['active'] ? 'ACTIVE' : 'NOT ACTIVE';
+  } else {
+    $where = '';
+    $params = [];
+  }
+
+  $sql = "SELECT code, description, active, COUNT(*) AS count
  FROM language la
-  LEFT JOIN locals l ON l.language = la.code'
- . (isset($code) ? ' WHERE code = ?' : '')
- . ' GROUP BY code ORDER BY description';
+  LEFT JOIN locals l ON l.language = la.code
+ $where
+ GROUP BY code ORDER BY description";
 
   try {
     $sth = $con->prepare($sql);
