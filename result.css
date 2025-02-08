@@ -12,11 +12,11 @@
 }
 #reveal {
     font-weight: 700;
-    font-size: 1.4vw;
+    font-size: calc(12px + 1.5vw);
 }
 #role {
     font-weight: 700;
-    font-size: 3vw;
+    font-size: calc(12px + 3vw);
     margin-bottom: 2vh;
     animation: 2s rb;
 }
