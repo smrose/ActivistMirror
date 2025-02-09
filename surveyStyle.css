@@ -23,6 +23,13 @@ body {
 .fh {
     margin-bottom: 1vh;
     margin-top: 1vh;
+    font-size: 2vw;
+}
+.fhb {
+    margin-bottom: 1vh;
+    margin-top: 1vh;
+    font-size: 2vw;
+    font-weight: 600;
 }
 input[type="text"], textarea {
     background-color: #ffc;

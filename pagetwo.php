@@ -58,12 +58,17 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
     */
 
     function mode() {
+    
       const vpwidth = window.innerWidth
+
       if(vpwidth > threshold) {
 
         // Landscape for wide screens.
 
         if(c2.style.flexDirection != 'row') {
+
+	  // Switch to landscape.
+	  
 	  c2.style.flexDirection = 'row'
 	  c2ds.forEach(c2d => {
 	    c2d.style.width = '50vw'
@@ -74,7 +79,13 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
         // Portrait for narrow screens.
 
         if(c2.style.flexDirection != 'column') {
+
+	  // Switch to portrait.
+
 	  c2.style.flexDirection = 'column'
+	  c2ds.forEach(c2d => {
+	    c2d.style.width = '90vw'
+	  })
 	}
       }
     }
@@ -88,9 +99,9 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
       gap: 1vh 1vw;
       margin: 1vw;
     }
-    .cl2 {
+    #cl2 {
       padding: 1.5vw;
-      font-size: 1.5vw;
+      font-size: 2vw;
     }
   </style>
 </head>
@@ -106,20 +117,20 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
 <form method="POST" action="form.php">
 <?=$langinput?>
 <?=$versioninput?>
-<div class="cl2">
+<div id="cl2">
  <?=$Based?>
 </div>
 
 <div id="c2">
   <div class="c2d">
     <div class="fh"><?=$providing?></div>
-    <div class="fh">
+    <div class="fhb">
       <?=$group?>:
     </div>
     <div>
       <input type="text" name="group" value="<?=$qp['group']?>" size="40">
     </div>
-    <div class="fh">
+    <div class="fhb">
       <?=$project?>:
     </div>
     <div>
@@ -129,7 +140,7 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
   <div class="c2d">
     <div class="fh"><?=$provprompt?></div>
     <div class="fh"><?=$examprompt?></div>
-    <div class="fh"><?=$prompt?>:</div>
+    <div class="fhb"><?=$prompt?>:</div>
     <div>
       <textarea name="prompt" rows="3" cols="60"><?=$qp['prompt']?></textarea>
     </div>
@@ -148,6 +159,7 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
   if(!isset($dev))
    print("dev.style.display = 'none'\n");
 ?>
+  const cl2 = document.querySelector('#cl2')
   const c2 = document.querySelector('#c2')
   const c2ds = document.querySelectorAll('.c2d')
   window.addEventListener('resize', mode)
