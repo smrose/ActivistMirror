@@ -215,10 +215,16 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
         if(tcol.style.flexDirection != 'row') {
 	  tcol.style.flexDirection = 'row'
         }
+	i22s.forEach(i22 => {
+	  i22.style.width = '21vw'
+	})
       } else {
         if(tcol.style.flexDirection != 'column') {
 	  tcol.style.flexDirection = 'column'
         }
+	i22s.forEach(i22 => {
+	  i22.style.width = '44vw'
+	})
       }
     } // end mode()
 
@@ -378,16 +384,16 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
       </div>
       <div id="twotwo"><!-- pattern images -->
         <div id="slot-1" data-pattern="<?=$topPatterns[0]['link']?>">
-          <img id="p-1" src="<?=$topPatterns[0]['card']['image']?>">
+          <img class="i22" id="p-1" src="<?=$topPatterns[0]['card']['image']?>">
         </div>
         <div id="slot-2" data-pattern="<?=$topPatterns[1]['link']?>">
-          <img id="p-2" src="<?=$topPatterns[1]['card']['image']?>">'
+          <img class="i22" id="p-2" src="<?=$topPatterns[1]['card']['image']?>">'
         </div>
         <div id="slot-3" data-pattern="<?=$topPatterns[2]['link']?>">
-          <img id="p-3" src="<?=$topPatterns[2]['card']['image']?>">
+          <img class="i22" id="p-3" src="<?=$topPatterns[2]['card']['image']?>">
         </div>
         <div id="slot-4" data-pattern="<?=$topPatterns[3]['link']?>">
-          <img id="p-4" src="<?=$topPatterns[3]['card']['image']?>">
+          <img class="i22" id="p-4" src="<?=$topPatterns[3]['card']['image']?>">
         </div>
       </div><!-- #patterns -->
     </div><!-- #twotwo -->
@@ -402,6 +408,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
     const tcol = document.querySelector('#tcol')
     const rolePanel = document.querySelector('#rolepanel')
     const patterns = document.querySelector('#patterns')
+    const i22s = document.querySelectorAll('.i22')
 
     window.addEventListener('resize', mode)
     mode()
@@ -411,7 +418,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
     twotwo = document.querySelector('#twotwo')
     imgs = twotwo.querySelectorAll('img')
     for(img of imgs) {
-         img.addEventListener('click', card)
+      img.addEventListener('click', card)
     }
     const server = '<?=$_SERVER['SERVER_NAME']?>'
     const spath = '<?=$spath?>'
