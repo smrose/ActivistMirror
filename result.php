@@ -214,17 +214,21 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
        
         if(tcol.style.flexDirection != 'row') {
 	  tcol.style.flexDirection = 'row'
+	  sub.style.fontSize = '1vw'
+	  ta.style.fontSize = '1vw'
+          i22s.forEach(i22 => {
+            i22.style.width = '21vw'
+          })
         }
-	i22s.forEach(i22 => {
-	  i22.style.width = '21vw'
-	})
       } else {
         if(tcol.style.flexDirection != 'column') {
 	  tcol.style.flexDirection = 'column'
+	  sub.style.fontSize = '1.6vw'
+	  ta.style.fontSize = '1.6vw'
+          i22s.forEach(i22 => {
+            i22.style.width = '44vw'
+          })
         }
-	i22s.forEach(i22 => {
-	  i22.style.width = '44vw'
-	})
       }
     } // end mode()
 
@@ -382,19 +386,11 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
       <div id="deets">
         <?=$full?>
       </div>
-      <div id="twotwo"><!-- pattern images -->
-        <div id="slot-1" data-pattern="<?=$topPatterns[0]['link']?>">
-          <img class="i22" id="p-1" src="<?=$topPatterns[0]['card']['image']?>">
-        </div>
-        <div id="slot-2" data-pattern="<?=$topPatterns[1]['link']?>">
-          <img class="i22" id="p-2" src="<?=$topPatterns[1]['card']['image']?>">'
-        </div>
-        <div id="slot-3" data-pattern="<?=$topPatterns[2]['link']?>">
-          <img class="i22" id="p-3" src="<?=$topPatterns[2]['card']['image']?>">
-        </div>
-        <div id="slot-4" data-pattern="<?=$topPatterns[3]['link']?>">
-          <img class="i22" id="p-4" src="<?=$topPatterns[3]['card']['image']?>">
-        </div>
+      <div id="twotwo">
+       <div id="slot-1" data-pattern="<?=$topPatterns[0]['link']?>"><img class="i22" id="p-1" src="<?=$topPatterns[0]['card']['image']?>"></div>
+        <div id="slot-2" data-pattern="<?=$topPatterns[1]['link']?>"><img class="i22" id="p-2" src="<?=$topPatterns[1]['card']['image']?>"></div>
+        <div id="slot-3" data-pattern="<?=$topPatterns[2]['link']?>"><img class="i22" id="p-3" src="<?=$topPatterns[2]['card']['image']?>"></div>
+        <div id="slot-4" data-pattern="<?=$topPatterns[3]['link']?>"><img class="i22" id="p-4" src="<?=$topPatterns[3]['card']['image']?>"></div>
       </div><!-- #patterns -->
     </div><!-- #twotwo -->
   </div>
