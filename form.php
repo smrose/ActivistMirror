@@ -95,9 +95,10 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
          container.style.flexDirection = 'row'
          questions.style.height = 'auto'
          questions.style.width = '60%'
+	 questions.style.order = 1
+	 questions.style.fontSize = 'calc(12px + 1.2vw)'
          image.style.height = 'auto'
          image.style.width = '40%'
-	 questions.style.order = 1
 	 image.style.order = 2
        }
      } else {
