@@ -37,6 +37,8 @@ $group = LocalString($language, MESSAGES, GROUPNAME);
 $prompt = LocalString($language, MESSAGES, PROMPT);
 $provprompt = LocalString($language, MESSAGES, PROVPROMPT);
 $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
+$ACTIVIST = LocalString($language, MESSAGES, ACTIVIST);
+$any = LocalString($language, MESSAGES, ANY);
 ?>
 <!DOCTYPE html>
 <html lang="<?=$lang?>">
@@ -101,7 +103,7 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
     }
     #cl2 {
       padding: 1.5vw;
-      font-size: 2vw;
+      font-size: calc(12px + 1vw);
     }
   </style>
 </head>
@@ -109,9 +111,8 @@ $examprompt = LocalString($language, MESSAGES, EXAMPROMPT);
 <body>
 <div id="dev" title="<?=$aversion?>">DEVELOPER</div>
 <div id="h">
- <span id="act">ACTIVIST:</span>
- <span id="actd">any person who is purposely       
-   working for positive social change.</span>
+ <span id="act"><?=$ACTIVIST?>:</span>
+ <span id="actd"><?=$any?></span>
 </div>
 
 <form method="POST" action="form.php">
