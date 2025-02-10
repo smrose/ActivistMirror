@@ -412,13 +412,11 @@ function Translate($opts) {
 
   if(isset($opts['source1'])) {
     $sname1 = GetLanguages(['code' => $opts['source1']]);
-    $sname1 = $sname1[0];
   } else
     $errors[] = 'Select a source language';
 
   if(isset($opts['source2'])) {
     $sname2 = GetLanguages(['code' => $opts['source2']]);
-    $sname2 = $sname2[0];
     $fclass = 'scone';
     $sclass = 'sub3';
   } else {
@@ -427,7 +425,6 @@ function Translate($opts) {
   }
   if(isset($opts['destination'])) {
     $dname = GetLanguages(['code' => $opts['destination']]);
-    $dname = $dname[0];
   } else
     $errors[] = 'Select a destination language';
 
