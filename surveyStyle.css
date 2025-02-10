@@ -23,12 +23,12 @@ body {
 .fh {
     margin-bottom: 1vh;
     margin-top: 1vh;
-    font-size: 2vw;
+    font-size: calc(12px + 1vw);
 }
 .fhb {
     margin-bottom: 1vh;
     margin-top: 1vh;
-    font-size: 2vw;
+    font-size: calc(12px + 1vw);
     font-weight: 600;
 }
 input[type="text"], textarea {
@@ -38,6 +38,7 @@ input[type="text"], textarea {
 #loz {
     margin-top: 3vh;
     text-align: center;
+    margin-bottom: 1vw;
 }
 #loz input {
     color: white;
