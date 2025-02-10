@@ -104,6 +104,8 @@ const ALLTYPES = 28;
 const WHATKIND = 29;
 const BEGIN = 30;
 const LANGSEL = 31;
+const ACTIVIST = 32;
+const ANY = 33;
 
 
 /* Debug()
@@ -704,14 +706,13 @@ function GetLanguages($filter = null) {
   } catch(PDOException $e) {
     throw new PDOException($e->getMessage(), $e->getCode());
   }
-  $params = (isset($code)) ? [$code] :[];
   try {
     $sth->execute($params);
   } catch(PDOException $e) {
     throw new PDOException($e->getMessage(), $e->getCode());
   }
 
-  if(isset($code))
+  if(isset($filter['code']))
     return $sth->fetch(PDO::FETCH_ASSOC);
   else {
     while($language = $sth->fetch(PDO::FETCH_ASSOC))
