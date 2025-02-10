@@ -107,6 +107,7 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
        
        if(container.style.flexDirection != 'column') {
          container.style.flexDirection = 'column'
+	 questions.style.fontSize = 'calc(12px + 1.2vw)'
          questions.style.width = '100%'
          image.style.width = '40vw'
 	 image.style.marginLeft = 'auto'
