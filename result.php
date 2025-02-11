@@ -207,26 +207,33 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
      */
 
     function mode() {
+
       const vpwidth = window.innerWidth
+
       if(vpwidth > threshold) {
 
-        // A wide viewport? Landscape, with image on the right.
+        // A wide viewport? Landscape, with pattern images on the right.
        
         if(tcol.style.flexDirection != 'row') {
+	  orientation = 'landscape'
 	  tcol.style.flexDirection = 'row'
 	  sub.style.fontSize = '1vw'
 	  ta.style.fontSize = '1vw'
           i22s.forEach(i22 => {
-            i22.style.width = '21vw'
+            i22.className = 'l22'
           })
         }
       } else {
+
+        // A narrow viewport? Portrait, with pattern images at bottom.
+       
         if(tcol.style.flexDirection != 'column') {
+	  orientation = 'portrait'
 	  tcol.style.flexDirection = 'column'
 	  sub.style.fontSize = '1.6vw'
 	  ta.style.fontSize = '1.6vw'
           i22s.forEach(i22 => {
-            i22.style.width = '44vw'
+            i22.className = 'p22'
           })
         }
       }
@@ -238,14 +245,17 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
      */
      
     function card(event) {
-        id = event.target.id
-        selector = '#' + id
-        img = document.querySelector(selector)
-        imageCard = img.attributes['src'].value
-        textCard = imageCard.replace('image', 'text')
-        div = img.parentElement
-        pattern = div.attributes['data-pattern'].value
-        div.innerHTML = '<a href="' + pattern + '" target="_blank"><img src="' + textCard + '"></a>'
+      id = event.target.id
+      selector = '#' + id
+      img = document.querySelector(selector)
+      imageCard = img.attributes['src'].value
+      textCard = imageCard.replace('image', 'text')
+      div = img.parentElement
+      pattern = div.attributes['data-pattern'].value
+      iclass = (orientation == 'landscape') ? 'l22' : 'p22'
+      div.innerHTML = '<a href="' + pattern + '" target="_blank"><img id="' + id + '" src="' + textCard + '" class="' + iclass + '"></a>'
+      let i22s = twotwo.querySelectorAll('div img')
+      
     } // end card()
 
     /* subf()
@@ -401,21 +411,19 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
   <script>
 
+    let orientation = ''
     const tcol = document.querySelector('#tcol')
     const rolePanel = document.querySelector('#rolepanel')
     const patterns = document.querySelector('#patterns')
-    const i22s = document.querySelectorAll('.i22')
-
-    window.addEventListener('resize', mode)
-    mode()
 
     lert = document.querySelector('#lert')
     lert.addEventListener('animationend', rst)
-    twotwo = document.querySelector('#twotwo')
-    imgs = twotwo.querySelectorAll('img')
-    for(img of imgs) {
-      img.addEventListener('click', card)
-    }
+
+    const twotwo = document.querySelector('#twotwo')
+    let i22s = twotwo.querySelectorAll('div img')
+    i22s.forEach(i22 => {
+      i22.addEventListener('click', card)
+    })
     const server = '<?=$_SERVER['SERVER_NAME']?>'
     const spath = '<?=$spath?>'
     let service = 'https://' + server + spath + '/suggestion.php/session/'
@@ -447,6 +455,8 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
     session_id = {$thisSession['session_id']}
 ";
 ?>
+    window.addEventListener('resize', mode)
+    mode()
   </script>
 
 </body>
