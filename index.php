@@ -86,6 +86,19 @@ $uid = time();
 
   <script>
 
+    /* mode()
+     *
+     *  Manage viewport dimension changes.
+     */
+
+    function mode() {
+      vp.innerHTML = 'Viewport width: <code>' + window.innerWidth +
+       "</code><br>\n Viewport height: <code>" + window.innerHeight +
+       "</code>\n</div>\n"
+
+    } // end mode()
+
+
     /* pagetwo()
      *
      *  Build a URL to pagetwo.php and assign it to document.location.
@@ -149,6 +162,7 @@ $uid = time();
 
 <?=$langsel?>
 
+<div id="vp"></div>
 <script>
   lz = document.querySelector('#lz')
   lz.addEventListener('click', pagetwo)
@@ -160,12 +174,13 @@ $uid = time();
   dev = document.querySelector('#dev')
 <?php
   if(!isset($dev))
-    print "  dev.style.display = 'none'\n";
+    print "  dev.style.display = 'none'\n  vp.style.display = 'none'\n";
   if($language != 'en')
     print "  language = \"$language\"\n";
   if(strlen($qps))
     print "  qps = \"$qps\"\n";
 ?>
+  mode()
 </script>
 
 </body>

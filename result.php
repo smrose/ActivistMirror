@@ -239,8 +239,9 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
           })
         }
       }
-      vp.innerHTML = 'Viewport width: ' + window.innerWidth +
-       "<br>\n Viewport height: " + window.innerHeight + "\n</div>\n"
+      vp.innerHTML = 'Viewport width: <code>' + window.innerWidth +
+       "</code><br>\n Viewport height: <code>" + window.innerHeight +
+       "</code>\n</div>\n"
 
     } // end mode()
 
@@ -457,7 +458,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
     vp = document.querySelector('#vp')
 <?php
   if(!isset($session['dev'])) {
-    print "    dev.style.display = 'none'\n    selcont.style.display = 'none'\n    vp.style.display = 'none'\n";
+    print "dev.style.display = 'none'\nselcont.style.display = 'none'\nvp.style.display = 'none'\n";
   }
   print "    rando = {$thisSession['rando']}
     session_id = {$thisSession['session_id']}

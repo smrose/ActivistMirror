@@ -90,22 +90,14 @@ $any = LocalString($language, MESSAGES, ANY);
 	  })
 	}
       }
-    }
+      vp.innerHTML = 'Viewport width: <code>' + window.innerWidth +
+       "</code><br>\n Viewport height: <code>" + window.innerHeight + "</code>\n</div>\n"
+      
+    } // end mode()
 
   </script>
 
   <link rel="stylesheet" href="surveyStyle.css">
-  <style type="text/css">
-    #c2 {
-      display: flex;
-      gap: 1vh 1vw;
-      margin: 1vw;
-    }
-    #cl2 {
-      padding: 1.5vw;
-      font-size: calc(12px + 1vw);
-    }
-  </style>
 </head>
 
 <body>
@@ -153,12 +145,15 @@ $any = LocalString($language, MESSAGES, ANY);
 </form>
 
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
+<div id="dev">DEVELOPER</div>
+<div id="vp"></div>
 
 <script>
-  dev = document.querySelector('#dev')
+  const dev = document.querySelector('#dev')
+  const vp = document.querySelector('#vp')
 <?php
   if(!isset($dev))
-   print("dev.style.display = 'none'\n");
+   print("dev.style.display = 'none'\nvp.style.display = 'none'\n");
 ?>
   const cl2 = document.querySelector('#cl2')
   const c2 = document.querySelector('#c2')

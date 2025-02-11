@@ -15,20 +15,20 @@ body {
     font-family: "Paytone One", sans-serif;
 }
 #act {
-    font-size: 5.6vw;
+    font-size: calc(12px + 5vw);
 }
 #actd {
-    font-size: 2.8vw;
+    font-size: calc(12px + 2vw);
 }
 .fh {
     margin-bottom: 1vh;
     margin-top: 1vh;
-    font-size: calc(12px + 1vw);
+    font-size: calc(8px + 1vw);
 }
 .fhb {
     margin-bottom: 1vh;
     margin-top: 1vh;
-    font-size: calc(12px + 1vw);
+    font-size: calc(8px + 1vw);
     font-weight: 600;
 }
 input[type="text"], textarea {
@@ -129,7 +129,17 @@ a:link, a:visited {
     right: 1vh;
     width: auto;
     color: #666;
+    font-size: 12pt;
     font-weight: 600;
     background-color: rgb(255 255 255 / 30%);
-    padding: 10px;
+    padding: 5px;
+}
+#c2 {
+    display: flex;
+    gap: 1vh 1vw;
+    margin: 1vw;
+}
+#cl2 {
+    padding: 1.5vw;
+    font-size: calc(8px + 1vw);
 }

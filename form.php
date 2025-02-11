@@ -116,6 +116,10 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
 	 image.style.order = 1
        }
      }
+     vp.innerHTML = 'Viewport width: <code>' + window.innerWidth +
+      "</code><br>\n Viewport height: <code>" + window.innerHeight +
+      "</code>\n</div>\n"
+
    } // end mode()
 
  </script>
@@ -191,12 +195,15 @@ for($pn = 1; $pn < $page; $pn++)
 </div>
 
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
+<div id="dev">DEVELOPER</div>
+<div id="vp"></div>
 
 <script>
-  dev = document.querySelector('#dev')
+  const dev = document.querySelector('#dev')
+  const vp = document.querySelector('#vp')
 <?php
   if(!isset($dev))
-    print("  dev.style.display = 'none'\n")
+    print("dev.style.display = 'none'\nvp.style.display = 'none'\n")
 ?>
   const container = document.querySelector('#container')
   const questions = document.querySelector('#questions')
