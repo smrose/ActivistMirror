@@ -47,7 +47,7 @@ h1 {
 #sl {
     position: fixed;
     bottom: 5vh;
-    left: 10vw;
+    left: 4vw;
 }
 #sl button {
     color: white;
@@ -57,8 +57,8 @@ h1 {
     border-radius: 15px;
     font-size: 15pt;
     font-weight: bold;
-    padding-right: 2em;
-    padding-left: 2em;
+    padding-right: 1em;
+    padding-left: 1em;
 }
 #sl button:hover {
     background-color: #95bda9;
