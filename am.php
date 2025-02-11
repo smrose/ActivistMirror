@@ -106,7 +106,8 @@ const BEGIN = 30;
 const LANGSEL = 31;
 const ACTIVIST = 32;
 const ANY = 33;
-
+const FEEDBACK = 34;
+const SUGSAVED = 35;
 
 /* Debug()
  *
