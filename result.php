@@ -126,6 +126,8 @@ $note = LocalString($language, MESSAGES, NOTE);
 $feed = LocalString($language, MESSAGES, FEED);
 $feedph = LocalString($language, MESSAGES, FEEDPH);
 $full = LocalString($language, MESSAGES, FULL);
+$feedback = LocalString($language, MESSAGES, FEEDBACK);
+$sugsaved = LocalString($language, MESSAGES, SUGSAVED);
 
 // Compute the top role.
 
@@ -237,6 +239,9 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
           })
         }
       }
+      vp.innerHTML = 'Viewport width: ' + window.innerWidth +
+       "<br>\n Viewport height: " + window.innerHeight + "\n</div>\n"
+
     } // end mode()
 
     /* card()
@@ -380,7 +385,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
       </div>
       <div id="feed">
         <textarea rows="4" cols="80" id="ta" placeholder="<?=$feedph?>"></textarea>
-        <button id="sub">Submit feedback</button>
+        <button id="sub"><?=$feedback?></button>
       </div>
       <p><!-- role thanks -->
         <?=$thanks?>
@@ -408,6 +413,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
   <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
   <div id="dev">DEVELOPER</div>
   <div id="lert">Suggestions saved.</div>
+  <div id="vp"></div>
 
   <script>
 
@@ -448,9 +454,11 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
     patselect4.addEventListener('change', select)
 
     selcont = document.querySelector('#selcont')
+    vp = document.querySelector('#vp')
 <?php
-  if(!isset($session['dev']))
-    print "    dev.style.display = 'none'; selcont.style.display = 'none'\n";
+  if(!isset($session['dev'])) {
+    print "    dev.style.display = 'none'\n    selcont.style.display = 'none'\n    vp.style.display = 'none'\n";
+  }
   print "    rando = {$thisSession['rando']}
     session_id = {$thisSession['session_id']}
 ";
