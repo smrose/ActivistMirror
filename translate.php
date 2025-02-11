@@ -1076,7 +1076,8 @@ if(!$rv) {
  news = document.querySelector('#news')
  role = document.querySelector('#role')
  pattern = document.querySelector('#pattern')
- news.addEventListener('change', isverb)
+ if(news)
+   news.addEventListener('change', isverb)
 </script>
 
 </body>
