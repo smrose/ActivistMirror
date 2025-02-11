@@ -123,3 +123,13 @@ a:link, a:visited {
 .answer:hover {
     background-color: rgb(255 255 255 / 30%);
 }
+#vp {
+    position: fixed;
+    bottom: 1vh;
+    right: 1vh;
+    width: auto;
+    color: #666;
+    font-weight: 600;
+    background-color: rgb(255 255 255 / 30%);
+    padding: 10px;
+}
