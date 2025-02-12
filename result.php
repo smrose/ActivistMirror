@@ -205,7 +205,8 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
     /* mode()
      *
-     *  Switch between portrait and landscape according to viewport width.
+     *  Set portrait or landscape according to viewport width. Called both
+     *  when the page first renders as well as when a 'resize' event fires.
      */
 
     function mode() {
@@ -260,7 +261,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
       pattern = div.attributes['data-pattern'].value
       iclass = (orientation == 'landscape') ? 'l22' : 'p22'
       div.innerHTML = '<a href="' + pattern + '" target="_blank"><img id="' + id + '" src="' + textCard + '" class="' + iclass + '"></a>'
-      let i22s = twotwo.querySelectorAll('div img')
+      i22s = twotwo.querySelectorAll('div img')
       
     } // end card()
 
