@@ -22,7 +22,6 @@
  *  MatchPatterns      store values in match_patterns table
  *  PatternNames       fetch pattern names and ids in tweaked_total order
  *  TopPatterns        fetch pattern data for the top patterns
- *  Mode               DESKTOP or MOBILE
  *  Dev                value of the 'dev' cookie; NULL if it doesn't exist
  *  Verbiage           fetch a row from the verbiage table
  *  GetLanguages       return the supported languages
@@ -34,6 +33,7 @@
  *  DoDeletes          process session deletions
  *  Download           perform a download
  *  UnixToDate         [year, month, day] from a Unix time
+ *  LocalsCounts       count locals by language and itemtype
  */
 
 const MODE_THRESHOLD = 1000;
@@ -598,19 +598,6 @@ function TopPatterns($patnos, $language) {
 } // end TopPatterns()
 
 
-/* Mode()
- *
- *  Select DESKTOP or MOBILE as the mode depending upon the screen width.
- */
-
-function Mode() {
-  global $screen_width;
-
-  return ($screen_width >= MODE_THRESHOLD) ? DESKTOP : MOBILE;
-
-} // end Mode()
-
-
 /* Dev()
  *
  *  Returns the value of the 'dev' cookie or null if it doesn't exist.
@@ -1103,11 +1090,26 @@ function UnixToDate($date) {
 } // end UnixToDate()
 
 
+/* LocalsCounts()
+ *
+ *  Fetch the count of locals by language code and itemtype.
+ *
+ *  We return an array keyed on language code and itemtype with associative
+ *  array values with keys 'language', 'item_type', 'itemtype', and 'count'.
+ */
 
+function LocalsCounts() {
+  global $con;
 
+  $sql = 'SELECT language, item_type, itemtype, count(*) AS count
+  FROM locals l
+   JOIN itemtypes i ON l.itemtype = i.itemtype_id
+  WHERE language IS NOT NULL
+  GROUP BY language, itemtype';
+  $sth = $con->prepare($sql);
+  $rv = $sth->execute();
+  while($lcount = $sth->fetch(PDO::FETCH_ASSOC))
+    $lcounts[$lcount['language']][$lcount['itemtype']] = $lcount;
+  return $lcounts;
 
-
-
-
-
-
+} // end LocalsCounts()
