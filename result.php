@@ -201,7 +201,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
   <script>
 
-    const threshold = 850
+    const threshold = <?= MODE_THRESHOLD ?>
 
     /* mode()
      *

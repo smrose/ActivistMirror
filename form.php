@@ -78,7 +78,7 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
  
  <script>
 
-   const threshold = 850
+   const threshold = <?= MODE_THRESHOLD ?>
 
    /* mode()
     *
