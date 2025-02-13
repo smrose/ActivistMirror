@@ -34,18 +34,31 @@
 
 /* ItemTypes()
  *
- *  Return a list of all the itemtypes plus, "verbiage."
+ *  Return a list of all the itemtypes for which there is at least 1 value
+ *  in the 'locals' table. Plus, "verbiage." The list consists of a set of
+ *  2-element arrays with 'itemtype_id' and 'item_type' fields.
+ *
+ *  Optionally - if $opts['itemtype_id'] is set - return the single matching
+ *  itemtype.
+ *
+ *  Optionally - if $opts['only'] is set - return only itemtypes for which
+ *  there is at least one string.
  */
 
-function ItemTypes($itemtype_id = null) {
+function ItemTypes($opts = null) {
   global $con;
 
-  $sql = 'SELECT * FROM itemtypes';
-  if(isset($itemtype_id))
+  $sql = 'SELECT itemtype_id, item_type, count(*) FROM itemtypes i';
+  if(isset($opts['only']))
+    $sql .= ' JOIN locals l ON i.itemtype_id = l.itemtype';
+  if(isset($opts['itemtype_id']))
     $sql .= ' WHERE itemtype_id = ?';
+  if(isset($opts['only']))
+    $sql .= " AND language = 'en' GROUP BY itemtype_id";
   $params = [];
-  if(isset($itemtype_id))
-    $params = [$itemtype_id];
+  if(isset($opts['itemtype_id']))
+    $params = [$opts['itemtype_id']];
+
   try {
     $sth = $con->prepare($sql);
     $sth->execute($params);
@@ -53,7 +66,12 @@ function ItemTypes($itemtype_id = null) {
   } catch(PDOException $e) {
     throw new PDOException($e->getMessage(), (int) $e->getCode());
   }
-  return $itemtypes;
+  if(isset($opts['itemtype_id'])) {
+    return $itemtypes[0];
+  } else {
+    $itemtypes[] = [VERBIAGE_T, 'verbiage'];
+    return $itemtypes;
+  }
 
 } /* end ItemTypes() */
 
@@ -260,10 +278,16 @@ function DeleteLocal($opt) {
   global $con;
 
   $sql = 'DELETE FROM locals
- WHERE object_id = ? AND itemtype = ? AND language = ?';
+ WHERE object_id = ? AND itemtype = ?';
+  $params = [$opt['object_id'], $opt['itemtype']];
+  if(isset($opt['language'])) {
+    $sql .= ' AND language = ?';
+    $params[] = $opt['language'];
+  }
+
   try {
     $sth = $con->prepare($sql);
-    $sth->execute([$opt['object_id'], $opt['itemtype'], $opt['language']]);
+    $sth->execute($params);
   } catch(PDOException $e) {
     throw new PDOException($e->getMessage(), (int) $e->getCode());
   }
