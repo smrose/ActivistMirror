@@ -119,7 +119,7 @@ function Choose($langs) {
   $super = $user['super'];
 
   $languages = GetLanguages(); // code, description
-  $itemtypes = ItemTypes(); // itemtype_id, itemtype
+  $itemtypes = ItemTypes(['only' => true]); // itemtype_id, itemtype
   
   $source1 = "<select name=\"source1\">
  <option value=\"xx\">Select</option>
@@ -127,10 +127,10 @@ function Choose($langs) {
   $source2 = "<select name=\"source2\">
  <option value=\"xx\">Select</option>
 ";  
-  $destination = "<select name=\"destination\">
+  $destination = "<select name=\"destination\" id=\"destination\">
  <option value=\"xx\">Select</option>
 ";
-  $itemtype = "<select name=\"itemtype\">
+  $itemtype = "<select name=\"itemtype\" id=\"itemtype\">
  <option value=\"xx\">Select</option>
 ";
 
@@ -196,6 +196,61 @@ languages and the type of strings you intend to translate.</p>
 <div class=\"chead\">Destination language:</div><div>$destination</div>
 <div class=\"chead\">String type:</div><div>$itemtype</div>
 <div class=\"csub\"><input type=\"submit\" name=\"submit\" value=\"Continue\"></div>
+
+<script>
+  const destination = document.querySelector('#destination')
+  const itemtype = document.querySelector('#itemtype')
+  destination.addEventListener('change', relabel)
+
+  labels = {
+";
+
+  /* Build JSON 'labels', which has labels for every OPTION element for
+   * every language in the '#itemtype' SELECT. */
+
+  $localscounts = LocalsCounts();
+
+  foreach($languages as $code => $language) {
+    print "    '$code': {\n";
+    foreach(array_keys($localscounts['en']) as $itemtype) {
+      $item_type = $localscounts['en'][$itemtype]['item_type'];
+      if(array_key_exists($code, $localscounts) &&
+         array_key_exists($itemtype, $localscounts[$code]))
+        $count = $localscounts[$code][$itemtype]['count'];
+      else
+        $count = 0;
+      if($code == 'en')
+        print "      $itemtype: '$item_type ($count items)',\n";
+      else
+        print "      $itemtype: '$item_type ($count of {$localscounts['en'][$itemtype]['count']} items)',\n";
+    }
+    print "    },\n";
+  }
+  print "  }
+
+  /* relabel()
+   *
+   *  Set the labels for every OPTION in the '#itemtype' SELECT for the
+   *  selected language.
+   */
+
+  function relabel() {
+    dso = destination.options[destination.selectedIndex]
+    dv = destination.value
+    if(dv == 'xx')
+      return false
+    for(let i = 0; i < itemtype.options.length; i++) {
+      iv = itemtype.options[i].value
+      if(iv == 'xx')
+        continue
+      itemtype.options[i].text = labels[dv][iv]
+    }
+    
+  } // end relabel()
+
+  relabel()
+
+</script>
 </form>
 ";
 
@@ -275,8 +330,8 @@ function KillString($itemtype = null) {
 
     // itemtype has been selected
 
-    $itemtypes = ItemTypes($itemtype);
-    $itname = $itemtypes[0][1];
+    $itemtypes = ItemTypes(['itemtype_id' => $itemtype]);
+    $itname = $itemtypes[1];
     
     if($_POST['submit'] == 'Delete selected') {
    
@@ -343,7 +398,7 @@ function KillString($itemtype = null) {
 
     // Select the type of string to be deleted.
     
-    $itemtypes = ItemTypes();
+    $itemtypes = ItemTypes(['only' => true]);
     $itemtype = "<select name=\"itemtype\" id=\"dels\">\n";
     foreach($itemtypes as $it) {
       $opt = " <option value=\"{$it[0]}\">{$it[1]}</option>\n";
@@ -402,8 +457,8 @@ function Translate($opts) {
 
   $errors = [];
   if(isset($opts['itemtype'])) {
-    $itemtype = ItemTypes($opts['itemtype']);
-    $itemtype = $itemtype[0][1];
+    $itemtype = ItemTypes(['itemtype_id' => $opts['itemtype']]);
+    $itemtype = $itemtype[1];
   } else
     $errors[] = 'Select a string type for translation';
 
