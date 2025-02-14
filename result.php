@@ -217,9 +217,11 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
         // A wide viewport? Landscape, with pattern images on the right.
        
-        if(tcol.style.flexDirection != 'row') {
+        if(orientation != 'landscape') {
 	  orientation = 'landscape'
-	  tcol.style.flexDirection = 'row'
+          patterns.style.gridRow = '1 / 4'
+          patterns.style.gridColumn = '2 / 3'
+	  roledesc.style.order = 1
 	  sub.style.fontSize = '1vw'
 	  ta.style.fontSize = '1vw'
           i22s.forEach(i22 => {
@@ -230,9 +232,11 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
         // A narrow viewport? Portrait, with pattern images at bottom.
        
-        if(tcol.style.flexDirection != 'column') {
+        if(orientation != 'portrait') {
 	  orientation = 'portrait'
-	  tcol.style.flexDirection = 'column'
+	  roledesc.style.order = 1
+          patterns.style.gridRow = ''
+          patterns.style.gridColumn = ''
 	  sub.style.fontSize = '1.6vw'
 	  ta.style.fontSize = '1.6vw'
           i22s.forEach(i22 => {
@@ -366,32 +370,24 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
   </div>
 
   <div id="tcol">
-    <div id="rolepanel">
-      <div id="revpan">
-        <span id="reveal"><?=$looking?>&nbsp;</span><span id="role"><?=$role?></span>
-      </div>
-      <div id="rimagectnr">
-        <img src="<?=$rimage?>" id="rimage">
-      </div>
-      <p><!-- role description -->
-       <?=$description?>
-      </p>
-      <p><!-- role post -->
-        <?=$post?>
-      </p>
-      <p>
-        <?=$note?>
-      </p>
+    <div id="revpan">
+      <span id="reveal"><?=$looking?>&nbsp;</span><span id="role"><?=$role?></span>
+    </div>
+    <div id="rimagectnr">
+      <img src="<?=$rimage?>" id="rimage">
+      <p><!-- role description --><?=$description?></p>
+      <p><!-- role post --><?=$post?></p>
+    </div>
+    <div id="roledesc">
+      <?=$note?>
       <div id="feedh">
         <?=$feed?>
       </div>
       <div id="feed">
         <textarea rows="4" cols="80" id="ta" placeholder="<?=$feedph?>"></textarea>
-        <button id="sub"><?=$feedback?></button>
+	  <button id="sub"><?=$feedback?></button>
       </div>
-      <p><!-- role thanks -->
-        <?=$thanks?>
-      </p>
+      <p><!-- role thanks --><?=$thanks?></p>
     </div>
     <div id="patterns">
       <p id="verbiage">
@@ -421,7 +417,9 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
     let orientation = ''
     const tcol = document.querySelector('#tcol')
-    const rolePanel = document.querySelector('#rolepanel')
+    const revpan = document.querySelector('#revpan')
+    const rimgpan = document.querySelector('#rimgpan')
+    const roledesc = document.querySelector('#roledesc')
     const patterns = document.querySelector('#patterns')
 
     lert = document.querySelector('#lert')

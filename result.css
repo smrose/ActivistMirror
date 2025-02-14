@@ -1,5 +1,6 @@
 #tcol {
-    display: flex;
+    display: grid;
+    width: 100vw;
     margin: 1vw;
 }
 #rolepanel {
@@ -29,7 +30,6 @@
     }
 }
 #rimagectnr {
-    margin-bottom: 1vh;
 }
 #rimage {
     left: auto;
@@ -37,9 +37,11 @@
     display: block;
     margin-left: auto;
     margin-right: auto;
+    margin-bottom: 1vh;
+}
+#rimagectnr p {
 }
 #patterns {
-    padding: 1vw;
 }
 #twotwo {
     display: grid;
@@ -48,7 +50,7 @@
     row-gap: .6vw;
 }
 #verbiage {
-    margin-top: 2em;
+    margin-top: 1em;
 }
 #remember {
 }
