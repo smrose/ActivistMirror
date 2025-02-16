@@ -566,8 +566,10 @@ function Translate($opts) {
     } else {
       $k = $source1['object_id'];
       $ovalue1 = $source1['localstring'];
+      $ovalue1 = preg_replace('/\n/', '<br>', $ovalue1);
       $ovalue2 = isset($source2)
         ? $source2['localstring'] : '<span class="faint">(no value)</span>';
+      $ovalue2 = preg_replace('/\n/', '<br>', $ovalue2);
       $value = (isset($destinations[$k])) ? $destinations[$k]['localstring'] : '';
       $placeholder = '';
       $title = "ID: $k";
