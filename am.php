@@ -1092,7 +1092,7 @@ function UnixToDate($date) {
 
 /* LocalsCounts()
  *
- *  Fetch the count of locals by language code and itemtype.
+ *  Fetch the count of locals (and verbiage) by language code and itemtype.
  *
  *  We return an array keyed on language code and itemtype with associative
  *  array values with keys 'language', 'item_type', 'itemtype', and 'count'.
@@ -1100,6 +1100,8 @@ function UnixToDate($date) {
 
 function LocalsCounts() {
   global $con;
+
+  // locals
 
   $sql = 'SELECT language, item_type, itemtype, count(*) AS count
   FROM locals l
@@ -1110,6 +1112,18 @@ function LocalsCounts() {
   $rv = $sth->execute();
   while($lcount = $sth->fetch(PDO::FETCH_ASSOC))
     $lcounts[$lcount['language']][$lcount['itemtype']] = $lcount;
+
+  // verbiage
+
+  $sql = 'SELECT language, count(*) AS count, "verbiage" AS item_type, ' .
+    VERBIAGE_T . ' AS itemtype
+ FROM verbiage
+ GROUP BY language';
+  $sth = $con->prepare($sql);
+  $rv = $sth->execute();
+  while($lcount = $sth->fetch(PDO::FETCH_ASSOC))
+    $lcounts[$lcount['language']][VERBIAGE_T] = $lcount;
+  
   return $lcounts;
 
 } // end LocalsCounts()
