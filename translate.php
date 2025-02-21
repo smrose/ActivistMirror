@@ -198,6 +198,7 @@ languages and the type of strings you intend to translate.</p>
 <div class=\"csub\"><input type=\"submit\" name=\"submit\" value=\"Continue\"></div>
 
 <script>
+  const verbiage = " . VERBIAGE_T . "
   const destination = document.querySelector('#destination')
   const itemtype = document.querySelector('#itemtype')
   destination.addEventListener('change', relabel)
@@ -984,6 +985,14 @@ function ActiveLanguage() {
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Piazzolla:ital,opsz,wght@0,8..30,100..900;1,8..30,100..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="translate.css">  
   <script>
+    window.addEventListener('load', function() {
+      news = document.querySelector('#news')
+      role = document.querySelector('#role')
+      pattern = document.querySelector('#pattern')
+      if(news)
+        news.addEventListener('change', isverb)
+    })
+
     function isverb(event) {
       if(news.value == verbiage) {
         role.disabled = false
@@ -992,7 +1001,6 @@ function ActiveLanguage() {
         role.disabled = true
         pattern.disabled = true
       }
-
     } // end isverb()
   </script>
 </head>
@@ -1125,17 +1133,6 @@ if(!$rv) {
 </div>
 
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
-
-<script>
-<?php
- print(' verbiage = ' . VERBIAGE_T . "\n");
-?>
- news = document.querySelector('#news')
- role = document.querySelector('#role')
- pattern = document.querySelector('#pattern')
- if(news)
-   news.addEventListener('change', isverb)
-</script>
 
 </body>
 </html>

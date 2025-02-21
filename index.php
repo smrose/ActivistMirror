@@ -86,6 +86,27 @@ $uid = time();
 
   <script>
 
+    window.addEventListener('load', function() {
+      lz = document.querySelector('#lz')
+      lz.addEventListener('click', pagetwo)
+      slel = document.querySelector('#sl')
+      slel.addEventListener('click', sl)
+      langsel = document.querySelector('#langsel')
+      langsel.style.display = 'none'
+      langsel.addEventListener('change', nl)
+      dev = document.querySelector('#dev')
+<?php
+  if(!isset($dev))
+    print "      dev.style.display = 'none'\n  vp.style.display = 'none'\n";
+  if($language != 'en')
+    print "      language = \"$language\"\n";
+  if(strlen($qps))
+    print "      qps = \"$qps\"\n";
+?>
+      window.addEventListener('resize', mode)
+      mode()
+    })
+
     /* mode()
      *
      *  Manage viewport dimension changes.
@@ -163,25 +184,6 @@ $uid = time();
 <?=$langsel?>
 
 <div id="vp"></div>
-<script>
-  lz = document.querySelector('#lz')
-  lz.addEventListener('click', pagetwo)
-  slel = document.querySelector('#sl')
-  slel.addEventListener('click', sl)
-  langsel = document.querySelector('#langsel')
-  langsel.style.display = 'none'
-  langsel.addEventListener('change', nl)
-  dev = document.querySelector('#dev')
-<?php
-  if(!isset($dev))
-    print "  dev.style.display = 'none'\n  vp.style.display = 'none'\n";
-  if($language != 'en')
-    print "  language = \"$language\"\n";
-  if(strlen($qps))
-    print "  qps = \"$qps\"\n";
-?>
-  mode()
-</script>
 
 </body>
 

@@ -80,6 +80,20 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
 
    const threshold = <?= MODE_THRESHOLD ?>
 
+   window.addEventListener('load', function() {
+     const dev = document.querySelector('#dev')
+     const vp = document.querySelector('#vp')
+<?php
+  if(!isset($dev))
+    print("    dev.style.display = 'none'\nvp.style.display = 'none'\n")
+?>
+     const container = document.querySelector('#container')
+     const questions = document.querySelector('#questions')
+     const image = document.querySelector('#image')
+     window.addEventListener('resize', mode)
+     mode()
+   })
+
    /* mode()
     *
     *  Swap between portrait and landscpe mode according to viewport width.
@@ -198,18 +212,5 @@ for($pn = 1; $pn < $page; $pn++)
 <div id="dev">DEVELOPER</div>
 <div id="vp"></div>
 
-<script>
-  const dev = document.querySelector('#dev')
-  const vp = document.querySelector('#vp')
-<?php
-  if(!isset($dev))
-    print("dev.style.display = 'none'\nvp.style.display = 'none'\n")
-?>
-  const container = document.querySelector('#container')
-  const questions = document.querySelector('#questions')
-  const image = document.querySelector('#image')
-  window.addEventListener('resize', mode)
-  mode()
-</script>
 </body>
 </html>

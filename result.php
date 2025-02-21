@@ -200,8 +200,61 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
   <link rel="stylesheet" href="result.css">
 
   <script>
-
+    let orientation = ''
+    let i22s = ''
     const threshold = <?= MODE_THRESHOLD ?>
+
+    window.addEventListener('load', function() {
+      const tcol = document.querySelector('#tcol')
+      const revpan = document.querySelector('#revpan')
+      const rimgpan = document.querySelector('#rimgpan')
+      const roledesc = document.querySelector('#roledesc')
+      const patterns = document.querySelector('#patterns')
+
+      lert = document.querySelector('#lert')
+      lert.addEventListener('animationend', rst)
+
+      const twotwo = document.querySelector('#twotwo')
+      i22s = twotwo.querySelectorAll('div img')
+      i22s.forEach(i22 => {
+	i22.addEventListener('click', card)
+      })
+      const server = '<?=$_SERVER['SERVER_NAME']?>'
+      const spath = '<?=$spath?>'
+      let service = 'https://' + server + spath + '/suggestion.php/session/'
+      sub = document.querySelector('#sub')
+      sub.addEventListener('click', subf)
+      dev = document.querySelector('#dev')
+      ta = document.querySelector('#ta')
+
+      goel = document.querySelector('#gob')
+      goel.addEventListener('click', relocate)
+
+      roleselect = document.querySelector('#roleselect')
+      roleselect.addEventListener('change', select)
+
+      patselect1 = document.querySelector('#patselect1')
+      patselect1.addEventListener('change', select)
+      patselect2 = document.querySelector('#patselect2')
+      patselect2.addEventListener('change', select)
+      patselect3 = document.querySelector('#patselect3')
+      patselect3.addEventListener('change', select)
+      patselect4 = document.querySelector('#patselect4')
+      patselect4.addEventListener('change', select)
+
+      selcont = document.querySelector('#selcont')
+      vp = document.querySelector('#vp')
+<?php
+  if(!isset($session['dev'])) {
+    print "    dev.style.display = 'none'\nselcont.style.display = 'none'\n    vp.style.display = 'none'\n";
+  }
+  print "    rando = {$thisSession['rando']}
+      session_id = {$thisSession['session_id']}
+  ";
+?>
+      window.addEventListener('resize', mode)
+      mode()
+    })
 
     /* mode()
      *
@@ -412,60 +465,6 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
   <div id="dev">DEVELOPER</div>
   <div id="lert">Suggestions saved.</div>
   <div id="vp"></div>
-
-  <script>
-
-    let orientation = ''
-    const tcol = document.querySelector('#tcol')
-    const revpan = document.querySelector('#revpan')
-    const rimgpan = document.querySelector('#rimgpan')
-    const roledesc = document.querySelector('#roledesc')
-    const patterns = document.querySelector('#patterns')
-
-    lert = document.querySelector('#lert')
-    lert.addEventListener('animationend', rst)
-
-    const twotwo = document.querySelector('#twotwo')
-    let i22s = twotwo.querySelectorAll('div img')
-    i22s.forEach(i22 => {
-      i22.addEventListener('click', card)
-    })
-    const server = '<?=$_SERVER['SERVER_NAME']?>'
-    const spath = '<?=$spath?>'
-    let service = 'https://' + server + spath + '/suggestion.php/session/'
-    sub = document.querySelector('#sub')
-    sub.addEventListener('click', subf)
-    dev = document.querySelector('#dev')
-    ta = document.querySelector('#ta')
-
-    goel = document.querySelector('#gob')
-    goel.addEventListener('click', relocate)
-
-    roleselect = document.querySelector('#roleselect')
-    roleselect.addEventListener('change', select)
-
-    patselect1 = document.querySelector('#patselect1')
-    patselect1.addEventListener('change', select)
-    patselect2 = document.querySelector('#patselect2')
-    patselect2.addEventListener('change', select)
-    patselect3 = document.querySelector('#patselect3')
-    patselect3.addEventListener('change', select)
-    patselect4 = document.querySelector('#patselect4')
-    patselect4.addEventListener('change', select)
-
-    selcont = document.querySelector('#selcont')
-    vp = document.querySelector('#vp')
-<?php
-  if(!isset($session['dev'])) {
-    print "dev.style.display = 'none'\nselcont.style.display = 'none'\nvp.style.display = 'none'\n";
-  }
-  print "    rando = {$thisSession['rando']}
-    session_id = {$thisSession['session_id']}
-";
-?>
-    window.addEventListener('resize', mode)
-    mode()
-  </script>
 
 </body>
 </html>

@@ -51,6 +51,20 @@ $any = LocalString($language, MESSAGES, ANY);
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
   
   <script>
+
+    window.addEventListener('load', function() {
+      const dev = document.querySelector('#dev')
+      const vp = document.querySelector('#vp')
+<?php
+  if(!isset($dev))
+   print("      dev.style.display = 'none'\nvp.style.display = 'none'\n");
+?>
+      const cl2 = document.querySelector('#cl2')
+      const c2 = document.querySelector('#c2')
+      const c2ds = document.querySelectorAll('.c2d')
+      window.addEventListener('resize', mode)
+      mode()
+})
   
     const threshold = <?= MODE_THRESHOLD ?>
     
@@ -147,20 +161,6 @@ $any = LocalString($language, MESSAGES, ANY);
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
 <div id="dev">DEVELOPER</div>
 <div id="vp"></div>
-
-<script>
-  const dev = document.querySelector('#dev')
-  const vp = document.querySelector('#vp')
-<?php
-  if(!isset($dev))
-   print("dev.style.display = 'none'\nvp.style.display = 'none'\n");
-?>
-  const cl2 = document.querySelector('#cl2')
-  const c2 = document.querySelector('#c2')
-  const c2ds = document.querySelectorAll('.c2d')
-  window.addEventListener('resize', mode)
-  mode()
-</script>
 
 </body>
 </html>
