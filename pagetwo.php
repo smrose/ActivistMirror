@@ -51,17 +51,20 @@ $any = LocalString($language, MESSAGES, ANY);
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
   
   <script>
+    let c2ds
+    let dev
+    let vp
 
     window.addEventListener('load', function() {
-      const dev = document.querySelector('#dev')
-      const vp = document.querySelector('#vp')
+      dev = document.querySelector('#dev')
+      vp = document.querySelector('#vp')
 <?php
   if(!isset($dev))
-   print("      dev.style.display = 'none'\nvp.style.display = 'none'\n");
+    print("      dev.style.display = 'none'\n      vp.style.display = 'none'\n");
 ?>
       const cl2 = document.querySelector('#cl2')
       const c2 = document.querySelector('#c2')
-      const c2ds = document.querySelectorAll('.c2d')
+      c2ds = document.querySelectorAll('.c2d')
       window.addEventListener('resize', mode)
       mode()
 })
@@ -83,26 +86,28 @@ $any = LocalString($language, MESSAGES, ANY);
 
         if(c2.style.flexDirection != 'row') {
 
-	  // Switch to landscape.
-	  
-	  c2.style.flexDirection = 'row'
-	  c2ds.forEach(c2d => {
-	    c2d.style.width = '50vw'
-	  })
-	}
+          // Switch to landscape.
+          
+          c2.style.flexDirection = 'row'
+          if(typeof c2ds !== 'undefined')
+            c2ds.forEach(c2d => {
+              c2d.style.width = '50vw'
+            })
+        }
       } else {
 
         // Portrait for narrow screens.
 
         if(c2.style.flexDirection != 'column') {
 
-	  // Switch to portrait.
+          // Switch to portrait.
 
-	  c2.style.flexDirection = 'column'
-	  c2ds.forEach(c2d => {
-	    c2d.style.width = '90vw'
-	  })
-	}
+          c2.style.flexDirection = 'column'
+          if(typeof c2ds !== 'undefined')
+            c2ds.forEach(c2d => {
+              c2d.style.width = '90vw'
+            })
+        }
       }
       vp.innerHTML = 'Viewport width: <code>' + window.innerWidth +
        "</code><br>\n Viewport height: <code>" + window.innerHeight + "</code>\n</div>\n"
@@ -159,7 +164,6 @@ $any = LocalString($language, MESSAGES, ANY);
 </form>
 
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
-<div id="dev">DEVELOPER</div>
 <div id="vp"></div>
 
 </body>
