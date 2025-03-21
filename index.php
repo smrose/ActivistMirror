@@ -93,8 +93,10 @@ $uid = time();
       if(slel !== null)
         slel.addEventListener('click', sl)
       langsel = document.querySelector('#langsel')
-      langsel.style.display = 'none'
-      langsel.addEventListener('change', nl)
+      if(langsel !== null) {
+        langsel.style.display = 'none'
+        langsel.addEventListener('change', nl)
+      }
       dev = document.querySelector('#dev')
 <?php
   if(!isset($dev))
