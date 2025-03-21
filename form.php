@@ -77,15 +77,16 @@ $qdescriptor = LocalString($language, QDESCRIPTOR, $page);
  <link rel="stylesheet" href="surveyStyle.css">
  
  <script>
-
+   let dev
+   let vp
    const threshold = <?= MODE_THRESHOLD ?>
 
    window.addEventListener('load', function() {
-     const dev = document.querySelector('#dev')
-     const vp = document.querySelector('#vp')
+     dev = document.querySelector('#dev')
+     vp = document.querySelector('#vp')
 <?php
   if(!isset($dev))
-    print("    dev.style.display = 'none'\nvp.style.display = 'none'\n")
+    print("    dev.style.display = 'none'\n    vp.style.display = 'none'\n")
 ?>
      const container = document.querySelector('#container')
      const questions = document.querySelector('#questions')
@@ -209,7 +210,6 @@ for($pn = 1; $pn < $page; $pn++)
 </div>
 
 <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
-<div id="dev">DEVELOPER</div>
 <div id="vp"></div>
 
 </body>
