@@ -90,7 +90,7 @@ $uid = time();
       lz = document.querySelector('#lz')
       lz.addEventListener('click', pagetwo)
       slel = document.querySelector('#sl')
-      if(typeof slel !== undefined)
+      if(typeof slel !== 'undefined')
         slel.addEventListener('click', sl)
       langsel = document.querySelector('#langsel')
       langsel.style.display = 'none'
