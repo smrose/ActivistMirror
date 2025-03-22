@@ -202,6 +202,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
   <script>
     let orientation = ''
     let i22s = ''
+    let service
     const threshold = <?= MODE_THRESHOLD ?>
 
     window.addEventListener('load', function() {
