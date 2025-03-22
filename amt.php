@@ -54,7 +54,8 @@ function ItemTypes($opts = null) {
   if(isset($opts['itemtype_id']))
     $sql .= ' WHERE itemtype_id = ?';
   if(isset($opts['only']))
-    $sql .= " AND language = 'en' GROUP BY itemtype_id";
+    $sql .= " AND language = 'en'";
+  $sql .= " GROUP BY itemtype_id";
   $params = [];
   if(isset($opts['itemtype_id']))
     $params = [$opts['itemtype_id']];
