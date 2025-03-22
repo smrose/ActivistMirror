@@ -203,6 +203,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
     let orientation = ''
     let i22s = ''
     let service
+    let session_id
     const threshold = <?= MODE_THRESHOLD ?>
 
     window.addEventListener('load', function() {
@@ -222,7 +223,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
       })
       const server = '<?=$_SERVER['SERVER_NAME']?>'
       const spath = '<?=$spath?>'
-      let service = 'https://' + server + spath + '/suggestion.php/session/'
+      service = 'https://' + server + spath + '/suggestion.php/session/'
       sub = document.querySelector('#sub')
       sub.addEventListener('click', subf)
       dev = document.querySelector('#dev')
