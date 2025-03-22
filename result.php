@@ -463,7 +463,7 @@ $postReport = LocalString($language, MESSAGES, POSTREPORT);
 
   <div id="brand">ACTIVIST<br>MIR<span class="a">R</span>OR</div>
   <div id="dev">DEVELOPER</div>
-  <div id="lert">Suggestions saved.</div>
+  <div id="lert"><?=$sugsaved?></div>
   <div id="vp"></div>
 
 </body>
