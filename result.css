@@ -113,7 +113,7 @@
     color: red;
     padding: 5px;
     max-width: fit-content;
-    position: absolute;
+    position: fixed;
     box-shadow: inset 0px 0px 2px grey, 0px 0px 5px grey;
     font-weight: 800;
     font-size: 20pt;
