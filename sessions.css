@@ -69,6 +69,8 @@ body {
     font-weight: bold;
     text-align: center;
     background-color: rgb(240, 240, 240, 90%);
+    top: 0px;
+    position: sticky;
 }
 button {
     font-weight: bold;

@@ -205,16 +205,10 @@ function ShowSessions($sessions) {
   print "<form id=\"lcontain\" method=\"POST\">
 $bcontain
 <div id=\"sess\">
+$headings
 ";
 
-  # count the rows we display so we can reprint headings periodically
-
-  $row = 0;
-
   foreach($sessions as $session) {
-
-    if(!($row % 20))
-      print $headings;
 
     # Add a hidden element containing the session_id to support downloads.
 
